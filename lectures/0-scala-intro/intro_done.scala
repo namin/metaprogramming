@@ -73,6 +73,20 @@ object implicits {
   // ex: type classes
 
   // type classes, e.g. Numeric[T], Ordering[T]
+  def foo[T:Numeric](x: T) = {
+    val num = implicitly[Numeric[T]]
+    num.plus(x, x)
+  }
+  // equivalently:
+  def foo2[T](x: T)(implicit num: Numeric[T]) {
+    num.plus(x,x)
+  }
+  // for example, we could define Numeric[Complex]
+  implicit def numComplex: Numeric[Complex] = ???
+
+  // here is another example
+  // taken from
+  // https://github.com/namin/implicits-demo/blob/master/src/test/scala/test.scala
 
   abstract class Ordering[A] {
     def compare(x:A,y:A): Int
@@ -173,6 +187,14 @@ object sugar {
         val xs = (0 to r).collect{case x if Factorial(x) == r => x}
         if (xs.isEmpty) None else Some(xs(0))
       }
+  }
+
+  // case class to companion object
+  case class Foo(a: Int)
+  // produces companion object
+  object Foo {
+    def apply(a: Int): Foo = Foo(a)
+    def unapply(x: Foo): Some[Int] = Some(x.a)
   }
 }
 
