@@ -34,4 +34,8 @@ tyc(G, app(M,N), B1) :- tyc(G, M, arr(A2,B2)), tyc(G, N, A1),
 typ(G, var(X), A) :- in((X,A), G).
 typ(G, lam(X,M), arr(A,B)) :- typ([(X,A)|G],M,B).
 typ(G, app(M,N), B) :- typ(G, M, arr(A1,B)), typ(G, N, A2),
-  unify_with_occurs_check(A1,A2).
+                       unify_with_occurs_check(A1,A2).
+
+% lambdax.(x x)
+% x has some type T
+% x x, need to unify T -> T with T

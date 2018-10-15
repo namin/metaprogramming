@@ -1,7 +1,9 @@
+:- public(edge/2).
 edge(a,b).
 edge(b,c).
 edge(c,a).
 
+:- public(path/2).
 path(X,Y) :- edge(X,Y).
 path(X,Y) :- edge(X,Z), path(Z,Y).
 
@@ -14,6 +16,7 @@ vanilla_solve([G|GS]) :-
     vanilla_solve(BODY),
     vanilla_solve(GS).
 
+% difference list for the trace
 tracer_solve([], T, T).
 tracer_solve([G|GS], T_IN, T_OUT) :-
     path_clause(G,BODY),

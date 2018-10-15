@@ -1,3 +1,13 @@
+;; program as data
+;; data as program <-- interpreters, meta-circular interpreters
+
+;; reflection
+;; program as data: reification
+;; prolog clause
+;; lisp quoting
+;; data as program: reflection
+
+
 ;; Scheme
 
 ;; lambda-calculus

@@ -46,6 +46,10 @@
        (let ((params (map car (cadr exp)))
              (args (map cadr (cadr exp)))
              (body (cons 'begin (cddr exp))))
+         ;; example
+         ;; (let ((a 1) (b 2)) (+ a b))
+         ;; ==>
+         ;; ((lambda (a b) (+ a b) 1 2)
          (let ((t (cons (list 'lambda params body)
                         args)))
            (evl t env))))
@@ -81,7 +85,7 @@
                  (evl (cons 'cond rest) env)))))
       (((tagged? 'lambda) exp)
        (list 'closure env (cadr exp) (caddr exp)))
-      (else
+      (else ;; application
        (app (evl (car exp) env)
             (map (lambda (e) (evl e env)) (cdr exp)))))))
 
