@@ -133,8 +133,11 @@ object eval {
     v
   }
 
-  lazy val init_env: Env = P(valueOf(List(
-    P(S("eq?"), F({args => args match { case P(a, P(b, N)) => B(a==b) }})))), N)
+  def make_init_env() = {
+    lazy val init_env: Env = P(valueOf(List(
+      P(S("eq?"), F({args => args match { case P(a, P(b, N)) => B(a==b) }})))), N)
+    init_env
+  }
 }
 
 import scala.util.parsing.combinator._
@@ -164,7 +167,7 @@ object repl {
   def evl(e: Value) = { base_eval(e, global_env, F{ v => v } ) }
   def ev(s: String) = evl(parse(s))
   def clean() = {
-    global_env = init_env
+    global_env = make_init_env()
   }
 }
 

@@ -1,0 +1,1 @@
+- Package the initial environment so that is cleaned up between runs.
