@@ -159,7 +159,7 @@ object parser extends JavaTokenParsers with PackratParsers {
 import eval._
 import parser._
 object repl {
-  var global_env = init_env
+  var global_env = make_init_env()
   def parse(s: String) = {
     val Success(e, _) = parseAll(exp, s)
     e
