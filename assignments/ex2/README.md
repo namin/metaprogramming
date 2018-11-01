@@ -6,6 +6,7 @@
   - `git clone https://github.com/namin/lms-verify`
   - `cd lms-verify`
   - `sbt publishLocal`
+- Warning: this should be done OUTSIDE the `ex2` project.
 
 ## How to run
 

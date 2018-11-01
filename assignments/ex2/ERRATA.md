@@ -1,0 +1,1 @@
+- Warn that `lms-verify` should be cloned outside the exercise project.
