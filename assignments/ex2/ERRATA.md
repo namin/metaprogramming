@@ -1,3 +1,2 @@
 - Warn that `lms-verify` should be cloned outside the exercise project.
 - Correct missing test case on interpreter
-- Warn that virtualized `if` statements don't work in lambdas
