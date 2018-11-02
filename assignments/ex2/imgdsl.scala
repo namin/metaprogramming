@@ -216,7 +216,7 @@ object ImageDslInterpTestApp extends App {
   }
   (new Ex1 with TestInterp).test()
   (new Ex2 with TestInterp).test()
-  (new Ex2 with TestInterp).test()
+  (new Ex3 with TestInterp).test()
   (new Ex4 with TestInterp).test()
   (new Ex5 with TestInterp).test()
   (new Ex6 with TestInterp).test()
