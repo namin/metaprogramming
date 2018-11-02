@@ -37,7 +37,7 @@ mode (C) because we use different formats and libraries. (?)
 
 (For implementing _if in the compiler, you can use the virtualized
 `if` that operates on `Rep` types. However, be sure your conditional
-and branches evaluate to `Rep` types, not other types.)
+and branches evaluate to `Rep` types, not other types. Note that the virtualized `if` statements only work in instance methods, and not in lambdas)
 
 ## Your task
 
