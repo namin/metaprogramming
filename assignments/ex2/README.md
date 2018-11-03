@@ -8,6 +8,18 @@
   - `sbt publishLocal`
 - Warning: this should be done OUTSIDE the `ex2` project.
 
+## Windows Users (by Al Taylor)
+It appears that several of the tools used by LMS don't work on Windows.
+To run the unix tools correctly (on Windows 10)
+- Install the Ubuntu subsystem on Windows: https://docs.microsoft.com/en-us/windows/wsl/install-win10
+- Open ubuntu shell (windows key + then type ubuntu)
+- create the user account etc
+- set the ubuntu home directory to be your windows home directory (/mnt/c/Users/$name) https://superuser.com/questions/1132626/changing-home-directory-of-user-on-windows-subsystem-for-linux
+- install sbt on ubuntu: https://www.scala-sbt.org/1.0/docs/Installing-sbt-on-Linux.html
+
+- to test your version of sbt: clone https://github.com/scala-lms/tutorials (from windows, to your normal dev directory) and try running `sbt test` from the tutorials directory in linux. You may need to install more dependencies, like gcc.
+- Note: you won't be able fully run the interpreted test in the first exercise, as `open out$n.jpg` will fail, but you can still view the output images in windows.
+
 ## How to run
 
 - `sbt run` to run an interpreter or compiler (pick a main by number).
