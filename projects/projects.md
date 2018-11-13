@@ -22,3 +22,11 @@
 * investigate [Kiselyov's (2018) tagless-final translation from lambda calculus to SKI combinators](http://okmij.org/ftp/tagless-final/ski.pdf)
    - what further optimizations might be performed?
 
+* an embedded langauge for remote procedure calls  
+   - one possibility is to interpret the language to simulate symmetric communication on top of a stateless server  
+     (see the [RPC calculus](https://www.era.lib.ed.ac.uk/handle/1842/3682) for a specification)
+
+* use supercompilation techniques (see e.g. [Perfect Supercompilation](https://dl.acm.org/citation.cfm?id=705649)) to agressively optimize an embedded DSL
+
+* an embedded query language, perhaps based on [Relational Algebra](https://en.wikipedia.org/wiki/Relational_algebra)
+
