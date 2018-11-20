@@ -30,3 +30,6 @@
 
 * an embedded query language, perhaps based on [Relational Algebra](https://en.wikipedia.org/wiki/Relational_algebra)
 
+* a neural network code compressor that acts on a trained neural network and performs custom optimizations (and perhaps compilation) for embedding
+
+* a high-level combinator library that compiles to JavaScript for drawing images and creating in-browser animations
