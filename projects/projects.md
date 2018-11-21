@@ -33,3 +33,13 @@
 * a neural network code compressor that acts on a trained neural network and performs custom optimizations (and perhaps compilation) for embedding
 
 * a high-level combinator library that compiles to JavaScript for drawing images and creating in-browser animations
+
+* an embedded language for processing network packets, along the lines of NetKAT  
+  ([NetKAT: Semantic Foundations for Networks (Anderson et al, 2014)](https://www.cs.cornell.edu/~jnfoster/papers/frenetic-netkat.pdf))
+
+* an embedded language for expressing computations with consistent units of measure (kg, metres, seconds, etc.)  
+  See [Types for Units-of-Measure: Theory and Practice (Kennedy 2009)](http://typesatwork.imm.dtu.dk/material/TaW_Paper_TypesAtWork_Kennedy.pdf)
+
+* a language for reversible computations  
+  see [Computing with Semirings and Weak Rig Groupoids](https://www.cs.indiana.edu/~sabry/papers/weak-rig-groupoid.pdf) (reversible algebraic expressions)
+  or [Janus](https://en.wikipedia.org/wiki/Janus_(time-reversible_computing_programming_language)) (reversible imperative language)
