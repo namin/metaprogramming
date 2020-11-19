@@ -10,7 +10,8 @@ Michaelmas Term 2018
 
 ## Lecture Notes and Slides
 
-- https://www.cl.cam.ac.uk/~na482/meta/
+- used to be available at https://www.cl.cam.ac.uk/~na482/meta/ -- no longer the case
+- [Lecture notes are still available.](https://namin.seas.harvard.edu/files/namin/files/metaprogramming-lecture-notes.pdf)
 
 ## Installation
 
