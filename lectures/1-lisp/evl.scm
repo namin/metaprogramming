@@ -105,9 +105,12 @@
 (define make-global-frame
   (lambda ()
     (list
+     (cons '+ +)
      (cons '* *)
      (cons '- -)
      (cons '< <)
+     (cons '= =)
+     (cons 'not not)
      (cons 'list list)
      (cons 'cons cons)
      (cons 'car car)
@@ -130,6 +133,10 @@
      (cons 'newline newline)
      (cons 'display display)
      (cons 'assq assq)
+     (cons 'procedure? procedure?)
+     (cons 'set-car! set-car!)
+     (cons 'set-cdr! set-cdr!)
+     (cons 'read read)
      (cons 'map (lambda (f xs) (map (lambda (x) (app f (list x))) xs))))))
 
 (define make-global-env
