@@ -86,6 +86,8 @@
       (((tagged? 'lambda) exp)
        (list 'closure env (cadr exp)
              (if (null? (cddr exp)) (cadr exp) (cons 'begin (cddr exp)))))
+      (((tagged? 'load) exp)
+       (file-load env (evl (cadr exp) env)))
       (else ;; application
        (app (evl (car exp) env)
             (map (lambda (e) (evl e env)) (cdr exp)))))))
@@ -102,6 +104,22 @@
        (apply p args))
       (else
        (error 'apply (format "expected procedure, not ~a" p))))))
+
+(define file-load-iter
+  (lambda (env port last-value)
+    (let ((exp (read port)))
+      (if (eof-object? exp)
+          (begin
+            (newline)
+            last-value)
+          (begin
+            (display ".")
+            (file-load-iter env port (evl exp env)))))))
+
+(define file-load
+  (lambda (env filename)
+    (call-with-input-file filename
+      (lambda (port) (file-load-iter env port 'undefined)))))
 
 (define make-global-frame
   (lambda ()
@@ -144,7 +162,8 @@
      (cons 'eof-object? eof-object?)
      (cons 'cpu-time cpu-time)
      (cons 'map (lambda (f xs) (map (lambda (x) (app f (list x))) xs)))
-     (cons 'with-exception-handler (lambda (f g) (with-exception-handler (lambda (c) (app f (list c))) (lambda () (app g '()))))))))
+     (cons 'with-exception-handler (lambda (f g) (with-exception-handler (lambda (c) (app f (list c))) (lambda () (app g '())))))
+     (cons 'call-with-input-file (lambda (filename f) (call-with-input-file filename (lambda (port) (app f (list port)))))))))
 
 (define make-global-env
   (lambda ()
@@ -156,9 +175,9 @@
 (define repl-loop
   (lambda (evl env level iter)
     (newline) (display level) (display "-") (display iter) (display "> ")
-    (let ((expr (read)))
+    (let ((exp (read)))
       (cond
-        ((eof-object? expr) ;; Ctrl-D → quit this REPL level
+        ((eof-object? exp) ;; Ctrl-D → quit this REPL level
          (display ";<eof>\n")
          *quit*)
         (else
@@ -168,7 +187,7 @@
             (repl-loop evl env level (+ iter 1)))
           (lambda ()
             (let ((start (cpu-time)))
-              (let ((v (evl expr env)))
+              (let ((v (evl exp env)))
                 (let ((elapsed (- (cpu-time) start)))
                   (if (eq? v *quit*)
                       *quit*
