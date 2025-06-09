@@ -137,25 +137,34 @@
      (cons 'set-car! set-car!)
      (cons 'set-cdr! set-cdr!)
      (cons 'read read)
-     (cons 'map (lambda (f xs) (map (lambda (x) (app f (list x))) xs))))))
+     (cons 'condition-message condition-message)
+     (cons 'map (lambda (f xs) (map (lambda (x) (app f (list x))) xs)))
+     (cons 'with-exception-handler (lambda (f g) (with-exception-handler (lambda (c) (app f (list c))) (lambda () (app g '()))))))))
 
 (define make-global-env
   (lambda ()
     (cons (make-global-frame) '())))
 
 (define repl-loop
-  (lambda (global-env level iter)
+  (lambda (evl global-env level iter)
     (newline)
     (display level)
     (display "-")
     (display iter)
     (display "> ")
-    (let ((val (evl (read) global-env)))
-      (display ";==> ")
-      (display val))
-    (newline)
-    (repl-loop global-env level (+ iter 1))))
+    (with-exception-handler
+     (lambda (c)
+       (display ";Error: ")
+       (display (condition-message c))
+       (newline)
+       (repl-loop evl global-env level (+ iter 1)))
+     (lambda ()
+       (let ((val (evl (read) global-env)))
+         (display ";==> ")
+         (display val))
+       (newline)
+       (repl-loop evl global-env level (+ iter 1))))))
 
 (define repl
-  (lambda (level)
-    (repl-loop (make-global-env) level 0)))
+  (lambda (evl level)
+    (repl-loop evl (make-global-env) level 0)))
