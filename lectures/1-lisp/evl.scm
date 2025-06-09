@@ -180,5 +180,5 @@
                         (repl-loop evl env level (+ iter 1))))))))))))))
 
 (define repl
-  (lambda (evl level)
+  (lambda (level)
     (repl-loop evl (make-global-env) level 0)))
