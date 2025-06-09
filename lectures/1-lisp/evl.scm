@@ -84,7 +84,8 @@
                  (evl (cadr clause) env)
                  (evl (cons 'cond rest) env)))))
       (((tagged? 'lambda) exp)
-       (list 'closure env (cadr exp) (cons 'begin (cddr exp))))
+       (list 'closure env (cadr exp)
+             (if (null? (cddr exp)) (cadr exp) (cons 'begin (cddr exp)))))
       (else ;; application
        (app (evl (car exp) env)
             (map (lambda (e) (evl e env)) (cdr exp)))))))
