@@ -141,6 +141,7 @@
      (cons 'read read)
      (cons 'display-condition display-condition)
      (cons 'eof-object? eof-object?)
+     (cons 'cpu-time cpu-time)
      (cons 'map (lambda (f xs) (map (lambda (x) (app f (list x))) xs)))
      (cons 'with-exception-handler (lambda (f g) (with-exception-handler (lambda (c) (app f (list c))) (lambda () (app g '()))))))))
 
@@ -165,12 +166,17 @@
             (display ";Error: ") (display-condition c) (newline)
             (repl-loop evl env level (+ iter 1)))
           (lambda ()
-            (let ((v (evl expr env)))
-              (if (eq? v *quit*)
-                  *quit*
-                  (begin
-                    (display ";==> ") (display v) (newline)
-                    (repl-loop evl env level (+ iter 1))))))))))))
+            (let ((start (cpu-time)))
+              (let ((v (evl expr env)))
+                (let ((elapsed (- (cpu-time) start)))
+                  (if (eq? v *quit*)
+                      *quit*
+                      (begin
+                        (display ";==> ") (display v)
+                        (newline)
+                        (display ";(") (display elapsed) (display " cpu-time)")
+                        (newline)
+                        (repl-loop evl env level (+ iter 1))))))))))))))
 
 (define repl
   (lambda (evl level)
