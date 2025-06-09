@@ -132,12 +132,15 @@
      (cons 'format format)
      (cons 'newline newline)
      (cons 'display display)
+     (cons 'write write)
+     (cons 'print-graph print-graph)
      (cons 'assq assq)
      (cons 'procedure? procedure?)
      (cons 'set-car! set-car!)
      (cons 'set-cdr! set-cdr!)
      (cons 'read read)
-     (cons 'condition-message condition-message)
+     (cons 'display-condition display-condition)
+     (cons 'eof-object? eof-object?)
      (cons 'map (lambda (f xs) (map (lambda (x) (app f (list x))) xs)))
      (cons 'with-exception-handler (lambda (f g) (with-exception-handler (lambda (c) (app f (list c))) (lambda () (app g '()))))))))
 
@@ -145,25 +148,29 @@
   (lambda ()
     (cons (make-global-frame) '())))
 
+(print-graph #t)
+(define *quit* ''eof)
+
 (define repl-loop
-  (lambda (evl global-env level iter)
-    (newline)
-    (display level)
-    (display "-")
-    (display iter)
-    (display "> ")
-    (with-exception-handler
-     (lambda (c)
-       (display ";Error: ")
-       (display (condition-message c))
-       (newline)
-       (repl-loop evl global-env level (+ iter 1)))
-     (lambda ()
-       (let ((val (evl (read) global-env)))
-         (display ";==> ")
-         (display val))
-       (newline)
-       (repl-loop evl global-env level (+ iter 1))))))
+  (lambda (evl env level iter)
+    (newline) (display level) (display "-") (display iter) (display "> ")
+    (let ((expr (read)))
+      (cond
+        ((eof-object? expr) ;; Ctrl-D → quit this REPL level
+         (display ";<eof>\n")
+         *quit*)
+        (else
+         (with-exception-handler
+          (lambda (c)
+            (display ";Error: ") (display-condition c) (newline)
+            (repl-loop evl env level (+ iter 1)))
+          (lambda ()
+            (let ((v (evl expr env)))
+              (if (eq? v *quit*)
+                  *quit*
+                  (begin
+                    (display ";==> ") (display v) (newline)
+                    (repl-loop evl env level (+ iter 1))))))))))))
 
 (define repl
   (lambda (evl level)
