@@ -84,7 +84,7 @@
                  (evl (cadr clause) env)
                  (evl (cons 'cond rest) env)))))
       (((tagged? 'lambda) exp)
-       (list 'closure env (cadr exp) (caddr exp)))
+       (list 'closure env (cadr exp) (cons 'begin (cddr exp))))
       (else ;; application
        (app (evl (car exp) env)
             (map (lambda (e) (evl e env)) (cdr exp)))))))
@@ -143,15 +143,19 @@
   (lambda ()
     (cons (make-global-frame) '())))
 
+(define repl-loop
+  (lambda (global-env level iter)
+    (newline)
+    (display level)
+    (display "-")
+    (display iter)
+    (display "> ")
+    (let ((val (evl (read) global-env)))
+      (display ";==> ")
+      (display val))
+    (newline)
+    (repl-loop global-env level (+ iter 1))))
+
 (define repl
-  (lambda ()
-    (let ((global-env (make-global-env)))
-      (define loop
-        (lambda ()
-          (newline)
-          (let ((val (evl (read) global-env)))
-            (display ";==> ")
-            (display val)
-            (newline))
-          (loop)))
-      (loop))))
+  (lambda (level)
+    (repl-loop (make-global-env) level 0)))
