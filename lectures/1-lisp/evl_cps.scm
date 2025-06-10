@@ -98,7 +98,7 @@
              (if (eq? 'else (car clause))
                  (evl (cadr clause) env cont)
                  (evl (car clause) env
-                      (lambda (v mc)
+                      (lambda (v)
                         (if v
                             (evl (cadr clause) env cont)
                             (evl (cons 'cond rest) env cont))))))))
@@ -116,7 +116,7 @@
             (lambda (p)
               (evlis (cdr exp) env
                      (lambda (args)
-                       (app p args env cont)))))))))
+                       (app p args cont)))))))))
 
 (define eval-set!
   (lambda (var val env cont)
@@ -147,8 +147,43 @@
          (evl body (env-extend clo-env params args) cont)))
       ((procedure? p)
        (cont (apply p args)))
+
+      ;; we hard code higher-order primitives
+      ((eq? p 'map-primitive)
+       (map-with-context (car args) (cadr args) cont))
+      ((eq? p 'with-exception-handler-primitive)
+       (with-exception-handler-with-context (car args) (cadr args) cont))
+      ((eq? p 'call-with-input-file-primitive)
+       (call-with-input-file-with-context (car args) (cadr args) cont))
+
       (else
-       (error 'apply (format "expected procedure, not ~a" p))))))
+       (error 'app (format "expected procedure, not ~a" p))))))
+
+(define map-with-context
+  (lambda (f xs cont)
+    (define map-helper
+      (lambda (xs acc)
+        (if (null? xs)
+            (cont (reverse acc))
+            (app f (list (car xs))
+                 (lambda (v)
+                   (map-helper (cdr xs) (cons v acc)))))))
+    (map-helper xs '())))
+
+(define with-exception-handler-with-context
+  (lambda (handler thunk cont)
+    (with-exception-handler
+      (lambda (exn)
+        (app handler (list exn) cont))
+      (lambda ()
+        (app thunk '() cont)))))
+
+(define call-with-input-file-with-context
+  (lambda (filename proc cont)
+    (call-with-input-file
+      filename
+      (lambda (port)
+        (app proc (list port) cont)))))
 
 (define file-load-iter
   (lambda (env port last-value cont)
@@ -161,7 +196,7 @@
             (display ".")
             (evl exp env
                  (lambda (v)
-                   (file-load-iter env port cont))))))))
+                   (file-load-iter env port v cont))))))))
 
 (define file-load
   (lambda (env filename cont)
@@ -210,14 +245,9 @@
      (cons 'display-condition display-condition)
      (cons 'eof-object? eof-object?)
      (cons 'cpu-time cpu-time)
-     ;; TODO what to do about map?
-     ;; map-primitive?   If not, what about the continuation?
-     (cons 'map (lambda (f xs) (map (lambda (x) (app f (list x))) xs)))
-     ;; TODO what to do about with-exception-handler?
-     (cons 'with-exception-handler (lambda (f g) (with-exception-handler (lambda (c) (app f (list c))) (lambda () (app g '())))))
-     ;; TODO what to do about call-with-input-file?
-     (cons 'call-with-input-file (lambda (filename f) (call-with-input-file filename (lambda (port) (app f (list port))))))
-     ;; TODO what about old-cont?
+     (cons 'map 'map-primitive)
+     (cons 'with-exception-handler 'with-exception-handler-primitive)
+     (cons 'call-with-input-file 'call-with-input-file-primitive)
      )))
 
 (define make-global-env
@@ -243,7 +273,7 @@
             (repl-loop evl env level (+ iter 1)))
           (lambda ()
             (let ((start (cpu-time)))
-              (let ((v (evl exp env)))
+              (let ((v (evl exp env (lambda (v) v))))
                 (let ((elapsed (- (cpu-time) start)))
                   (if (eq? v *quit*)
                       *quit*
