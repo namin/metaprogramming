@@ -88,12 +88,7 @@
       (((tagged? 'set!) exp)
        (evl (caddr exp) env
             (lambda (val mc)
-              (let ((binding (assq (cadr exp) (car env))))
-                (if binding
-                    (begin
-                      (set-cdr! binding val)
-                      (cont 'ok mc))
-                    (error 'set! "unbound variable" (cadr exp)))))
+              (eval-set! (cadr exp) val env cont mc))
             meta-cont))
       
       (((tagged? 'if) exp)
@@ -168,6 +163,15 @@
                            (app p args env cont mc))
                          mc)))
             meta-cont)))))
+
+(define eval-set!
+  (lambda (var val env cont meta-cont)
+    (let ((binding (assq var (car env))))
+      (if binding
+          (begin
+            (set-cdr! binding val)
+            (cont 'undefined meta-cont))
+          (error 'set! "unbound variable" var)))))
 
 (define evlis
   (lambda (exps env cont meta-cont)
@@ -327,6 +331,7 @@
      (cons 'map 'map-primitive)
      (cons 'with-exception-handler 'with-exception-handler-primitive)
      (cons 'call-with-input-file 'call-with-input-file-primitive)
+     (cons 'old-cont #f)
      (cons 'reify-env (lambda () (list 'environment (make-global-env))))
      (cons 'reify-cont (lambda () (list 'continuation 
                                         (lambda (v mc) 
@@ -358,7 +363,17 @@
          (with-exception-handler
           (lambda (c)
             (display ";Error: ") (display-condition c) (newline)
-            (repl-loop evl env meta-cont level (+ iter 1)))
+            (let ((forced-mc (meta-cont-force meta-cont)))
+              (let ((upper-env (car (car forced-mc)))
+                    (upper-cont (cdr (car forced-mc)))
+                    (upper-meta-cont (cdr forced-mc))
+                    (resume-k (list 'continuation
+                                    (lambda (v mc)
+                                      (repl-loop evl env meta-cont level (+ iter 1))))))
+                (eval-set! 'old-cont resume-k upper-env
+                           (lambda (v mc)
+                             (upper-cont 'error mc))
+                           upper-meta-cont))))
           (lambda ()
             (let ((start (cpu-time)))
               ((evl exp env
