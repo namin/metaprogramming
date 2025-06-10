@@ -1,11 +1,18 @@
-(define env-lookup
+(define find-binding
   (lambda (env x)
     (if (null? env)
-        (error 'env-lookup (format "unbound variable ~a" x))
+        #f
         (let ((b (assq x (car env))))
           (if b
-              (cdr b)
-              (env-lookup (cdr env) x))))))
+              b
+              (find-binding (cdr env) x))))))
+
+(define env-lookup
+  (lambda (env x)
+    (let ((b (find-binding env x)))
+      (if b
+          (cdr b)
+          (error 'env-lookup (format "unbound variable ~a" x))))))
 
 (define make-frame
   (lambda (params args)
@@ -166,8 +173,7 @@
 
 (define eval-set!
   (lambda (var val env cont meta-cont)
-    ;; TODO: need to check each frame, not just the first
-    (let ((binding (assq var (car env))))
+    (let ((binding (find-binding env var)))
       (if binding
           (begin
             (set-cdr! binding val)
