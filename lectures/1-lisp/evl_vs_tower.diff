@@ -1,0 +1,409 @@
+diff --git a/evl.scm b/tower.scm
+index 13d14c2..c8fab8a 100644
+--- a/evl.scm
++++ b/tower.scm
+@@ -31,103 +31,264 @@
+     (lambda (e)
+       (and (pair? e) (eq? t (car e))))))
+ 
++(define make-meta-cont-level
++  (lambda (level)
++    (let ((upper-env (make-global-env)))
++      (cons upper-env
++            (lambda (val mc)
++              (display (format "Returned to level ~a with: " level))
++              (display val)
++              (newline)
++              (repl-loop evl upper-env mc level 0))))))
++
++(define get-meta-cont
++  (lambda (level)
++    (cons (make-meta-cont-level level)
++          (lambda () (get-meta-cont (+ level 1))))))
++
++(define meta-cont-force
++  (lambda (mc)
++    (if (procedure? (cdr mc))
++        (cons (car mc) ((cdr mc)))
++        mc)))
++
+ (define evl
+-  (lambda (exp env)
++  (lambda (exp env cont meta-cont)
+     (cond
+       ((or (number? exp) (boolean? exp) (string? exp))
+-       exp)
++       (cont exp meta-cont))
+       ((symbol? exp)
+-       (env-lookup env exp))
++       (cont (env-lookup env exp) meta-cont))
+       (((tagged? 'quote) exp)
+-       (cadr exp))
++       (cont (cadr exp) meta-cont))
+       (((tagged? 'begin) exp)
+        (if (null? (cddr exp))
+-           (evl (cadr exp) env)
+-           (begin
+-             (evl (cadr exp) env)
+-             (evl (cons 'begin (cddr exp)) env))))
++           (evl (cadr exp) env cont meta-cont)
++           (evl (cadr exp) env
++                (lambda (v mc)
++                  (evl (cons 'begin (cddr exp)) env cont mc))
++                meta-cont)))
+       (((tagged? 'let) exp)
+        (let ((params (map car (cadr exp)))
+              (args (map cadr (cadr exp)))
+              (body (cons 'begin (cddr exp))))
+-         (let ((t (cons (list 'lambda params body) args)))
+-           (evl t env))))
++         (evl (cons (list 'lambda params body) args) env cont meta-cont)))
+       (((tagged? 'define) exp)
+        (let ((old-frame (car env))
+              (b (cons (cadr exp) 'undefined)))
+-         (let ((new-frame (cons
+-                           b
+-                           old-frame)))
++         (let ((new-frame (cons b old-frame)))
+            (set-car! env new-frame)
+-           (let ((r (evl (caddr exp) env)))
+-             (set-cdr! b r)
+-             'undefined))))
++           (evl (caddr exp) env
++                (lambda (r mc)
++                  (set-cdr! b r)
++                  (cont 'undefined mc))
++                meta-cont))))
++      (((tagged? 'set!) exp)
++       (evl (caddr exp) env
++            (lambda (val mc)
++              (eval-set! (cadr exp) val env cont mc))
++            meta-cont))
+       (((tagged? 'if) exp)
+-       (if (evl (cadr exp) env)
+-           (evl (caddr exp) env)
+-           (evl (cadddr exp) env)))
++       (evl (cadr exp) env
++            (lambda (v mc)
++              (if v
++                  (evl (caddr exp) env cont mc)
++                  (evl (cadddr exp) env cont mc)))
++            meta-cont))
+       (((tagged? 'and) exp)
+        (if (null? (cdr exp))
+-           #f
++           (cont #f meta-cont)
+            (if (null? (cddr exp))
+-               (evl (cadr exp) env)
+-               (if (evl (cadr exp) env)
+-                   (evl (cons 'and (cddr exp)) env)
+-                   #f))))
++               (evl (cadr exp) env cont meta-cont)
++               (evl (cadr exp) env
++                    (lambda (v mc)
++                      (if v
++                          (evl (cons 'and (cddr exp)) env cont mc)
++                          (cont #f mc)))
++                    meta-cont))))
+       (((tagged? 'or) exp)
+        (if (null? (cdr exp))
+-           #t
++           (cont #t meta-cont)
+            (if (null? (cddr exp))
+-               (evl (cadr exp) env)
+-               (let ((v (evl (cadr exp) env)))
+-                 (if v
+-                     v
+-                     (evl (cons 'or (cddr exp)) env))))))
++               (evl (cadr exp) env cont meta-cont)
++               (evl (cadr exp) env
++                    (lambda (v mc)
++                      (if v
++                          (cont v mc)
++                          (evl (cons 'or (cddr exp)) env cont mc)))
++                    meta-cont))))
+       (((tagged? 'cond) exp)
+        (if (null? (cdr exp))
+-           'undefined
++           (cont 'undefined meta-cont)
+            (let ((clause (cadr exp))
+                  (rest (cddr exp)))
+-             (if (or (eq? 'else (car clause)) (evl (car clause) env))
+-                 (evl (cadr clause) env)
+-                 (evl (cons 'cond rest) env)))))
++             (if (eq? 'else (car clause))
++                 (evl (cadr clause) env cont meta-cont)
++                 (evl (car clause) env
++                      (lambda (v mc)
++                        (if v
++                            (evl (cadr clause) env cont mc)
++                            (evl (cons 'cond rest) env cont mc)))
++                      meta-cont)))))
+       (((tagged? 'lambda) exp)
+-       (list 'closure env (cadr exp)
+-             (if (null? (cdddr exp)) (caddr exp) (cons 'begin (cddr exp)))))
++       (cont (list 'closure env (cadr exp)
++                   (if (null? (cdddr exp))
++                       (caddr exp)
++                       (cons 'begin (cddr exp))))
++             meta-cont))
++
++      (((tagged? 'delta) exp)
++       (cont (list 'delta-reifier env (cadr exp) (caddr exp))
++             meta-cont))
++      (((tagged? 'meaning) exp)
++       (evl (cadr exp) env
++            (lambda (e mc)
++              (evl (caddr exp) env
++                   (lambda (r mc)
++                     (evl (cadddr exp) env
++                          (lambda (k mc)
++                            (evl e (cadr r) (cadr k)
++                                 (cons (cons env cont) mc)))
++                          mc))
++                   mc))
++            meta-cont))
+       (((tagged? 'load) exp)
+-       (file-load env (evl (cadr exp) env)))
+-      (else ;; application
+-       (app (evl (car exp) env)
+-            (map (lambda (e) (evl e env)) (cdr exp)))))))
++       (evl (cadr exp) env
++            (lambda (filename mc)
++              (file-load env filename cont mc))
++            meta-cont))
++      (else
++       (evl (car exp) env
++            (lambda (p mc)
++              (if ((tagged? 'delta-reifier) p)
++                  (app p (cdr exp) env cont mc)
++                  (evlis (cdr exp) env
++                         (lambda (args mc)
++                           (app p args env cont mc))
++                         mc)))
++            meta-cont)))))
++
++(define eval-set!
++  (lambda (var val env cont meta-cont)
++    (let ((binding (find-binding env var)))
++      (if binding
++          (begin
++            (set-cdr! binding val)
++            (cont 'undefined meta-cont))
++          (error 'set! "unbound variable" var)))))
++
++(define evlis
++  (lambda (exps env cont meta-cont)
++    (if (null? exps)
++        (cont '() meta-cont)
++        (evl (car exps) env
++             (lambda (v mc)
++               (evlis (cdr exps) env
++                      (lambda (vs mc)
++                        (cont (cons v vs) mc))
++                      mc))
++             meta-cont))))
+ 
+ (define app
+-  (lambda (p args)
++  (lambda (p args env cont meta-cont)
+     (cond
+       (((tagged? 'closure) p)
+        (let ((clo-env (cadr p))
+              (params (caddr p))
+              (body (cadddr p)))
+-         (evl body (env-extend clo-env params args))))
++         (evl body (env-extend clo-env params args) cont meta-cont)))
++
++      (((tagged? 'delta-reifier) p)
++       (let ((forced-mc (meta-cont-force meta-cont))
++             (reifier-env (cadr p))
++             (params (caddr p))
++             (body (cadddr p)))
++         (let ((upper-env (car (car forced-mc)))
++               (upper-cont (cdr (car forced-mc)))
++               (upper-meta-cont (cdr forced-mc))
++               (k-proc (list 'continuation (lambda (v mc) (cont v meta-cont)))))
++           (evl body
++                (env-extend upper-env params
++                           (list args
++                                 (list 'environment env)
++                                 k-proc))
++                upper-cont
++                upper-meta-cont))))
++
++      (((tagged? 'environment) p)
++       (let ((e (cadr p)))
++         (let ((n (length args)))
++           (cond
++           ((= n 0) (cont e meta-cont))
++           ((= n 1) (cont (env-lookup e (car args)) meta-cont))
++           (else (error 'app "environment expects 0 or 1 args"))))))
++
++      (((tagged? 'continuation) p)
++       (let ((k (cadr p)))
++         (if (= (length args) 1)
++             (k (car args) meta-cont)
++             (error 'app "continuation expects 1 arg"))))
++
+       ((procedure? p)
+-       (apply p args))
++       (cont (apply p args) meta-cont))
++
++      ;; we hard code higher-order primitives
++      ((eq? p 'map-primitive)
++       (map-with-context (car args) (cadr args) env cont meta-cont))
++      ((eq? p 'with-exception-handler-primitive)
++       (with-exception-handler-with-context (car args) (cadr args) env cont meta-cont))
++      ((eq? p 'call-with-input-file-primitive)
++       (call-with-input-file-with-context (car args) (cadr args) env cont meta-cont))
++
+       (else
+-       (error 'apply (format "expected procedure, not ~a" p))))))
++       (error 'app (format "expected procedure, not ~a" p))))))
++
++(define map-with-context
++  (lambda (f xs env cont meta-cont)
++    (define map-helper
++      (lambda (xs acc)
++        (if (null? xs)
++            (cont (reverse acc) meta-cont)
++            (app f (list (car xs)) env
++                 (lambda (v mc)
++                   (map-helper (cdr xs) (cons v acc)))
++                 meta-cont))))
++    (map-helper xs '())))
++
++(define with-exception-handler-with-context
++  (lambda (handler thunk env cont meta-cont)
++    (with-exception-handler
++      (lambda (exn)
++        (app handler (list exn) env cont meta-cont))
++      (lambda ()
++        (app thunk '() env cont meta-cont)))))
++
++(define call-with-input-file-with-context
++  (lambda (filename proc env cont meta-cont)
++    (call-with-input-file
++      filename
++      (lambda (port)
++        (app proc (list port) env cont meta-cont)))))
+ 
+ (define file-load-iter
+-  (lambda (env port last-value)
++  (lambda (env port last-value cont meta-cont)
+     (let ((exp (read port)))
+       (if (eof-object? exp)
+           (begin
+             (newline)
+-            last-value)
++            (cont last-value meta-cont))
+           (begin
+             (display ".")
+-            (file-load-iter env port (evl exp env)))))))
++            (evl exp env
++                 (lambda (v mc)
++                   (file-load-iter env port v cont mc))
++                 meta-cont))))))
+ 
+ (define file-load
+-  (lambda (env filename)
++  (lambda (env filename cont meta-cont)
+     (call-with-input-file filename
+-      (lambda (port) (file-load-iter env port 'undefined)))))
++      (lambda (port)
++        (file-load-iter env port 'undefined cont meta-cont)))))
+ 
+ (define make-global-frame
+   (lambda ()
+@@ -154,6 +315,8 @@
+      (cons 'boolean? boolean?)
+      (cons 'string? string?)
+      (cons 'symbol? symbol?)
++     (cons 'length length)
++     (cons 'reverse reverse)
+      (cons 'apply apply)
+      (cons 'error error)
+      (cons 'format format)
+@@ -169,43 +332,65 @@
+      (cons 'display-condition display-condition)
+      (cons 'eof-object? eof-object?)
+      (cons 'cpu-time cpu-time)
+-     (cons 'map (lambda (f xs) (map (lambda (x) (app f (list x))) xs)))
+-     (cons 'with-exception-handler (lambda (f g) (with-exception-handler (lambda (c) (app f (list c))) (lambda () (app g '())))))
+-     (cons 'call-with-input-file (lambda (filename f) (call-with-input-file filename (lambda (port) (app f (list port)))))))))
++     (cons 'map 'map-primitive)
++     (cons 'with-exception-handler 'with-exception-handler-primitive)
++     (cons 'call-with-input-file 'call-with-input-file-primitive)
++     (cons 'old-cont #f)
++     (cons 'reify-env (lambda () (list 'environment (make-global-env))))
++     (cons 'reify-cont (lambda () (list 'continuation
++                                        (lambda (v mc)
++                                          (display "Result: ")
++                                          (display v)
++                                          (newline)
++                                          v)))))))
+ 
+ (define make-global-env
+   (lambda ()
+     (cons (make-global-frame) '())))
+ 
+ (print-graph #t)
+-(define *quit* ''eof)
+ 
+ (define repl-loop
+-  (lambda (evl env level iter)
+-    (newline) (display level) (display "-") (display iter) (display "> ")
++  (lambda (evl env meta-cont level iter)
++    (newline)
++    (display level) (display "-") (display iter) (display "> ")
+     (let ((exp (read)))
+       (cond
+-        ((eof-object? exp) ;; Ctrl-D → quit this REPL level
++        ((eof-object? exp)
+          (display ";<eof>\n")
+-         *quit*)
++         (let ((forced-mc (meta-cont-force meta-cont)))
++           (let ((upper-env (car (car forced-mc)))
++                 (upper-cont (cdr (car forced-mc)))
++                 (upper-meta-cont (cdr forced-mc)))
++             (upper-cont 'exit-level upper-meta-cont))))
+         (else
+          (with-exception-handler
+           (lambda (c)
+             (display ";Error: ") (display-condition c) (newline)
+-            (repl-loop evl env level (+ iter 1)))
++            (let ((forced-mc (meta-cont-force meta-cont)))
++              (let ((upper-env (car (car forced-mc)))
++                    (upper-cont (cdr (car forced-mc)))
++                    (upper-meta-cont (cdr forced-mc))
++                    (resume-k (list 'continuation
++                                    (lambda (v mc)
++                                      (repl-loop evl env meta-cont level (+ iter 1))))))
++                (eval-set! 'old-cont resume-k upper-env
++                           (lambda (v mc)
++                             (upper-cont 'error mc))
++                           upper-meta-cont))))
+           (lambda ()
+             (let ((start (cpu-time)))
+-              (let ((v (evl exp env)))
+-                (let ((elapsed (- (cpu-time) start)))
+-                  (if (eq? v *quit*)
+-                      *quit*
+-                      (begin
++              ((evl exp env
++                    (lambda (v mc)
++                      (let ((elapsed (- (cpu-time) start)))
+                         (display ";==> ") (write v)
+                         (newline)
+                         (display ";(") (display elapsed) (display " cpu-time)")
+                         (newline)
+-                        (repl-loop evl env level (+ iter 1))))))))))))))
++                        (repl-loop evl env mc level (+ iter 1))))
++                    meta-cont)
++               )))))))))
+ 
+ (define repl
+   (lambda (level)
+-    (repl-loop evl (make-global-env) level 0)))
++    (repl-loop evl (make-global-env) (get-meta-cont 1) level 0)))
