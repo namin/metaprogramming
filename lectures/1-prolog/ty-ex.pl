@@ -1,103 +1,96 @@
 % -*- Mode: Prolog -*-
 
-| ?-
+% load needed files
+[builtin, debug, ty].
+
+% always print out the answers in full
+set_prolog_flag(answer_write_options, [quoted(true), portray(true), spacing(next_argument)]).
+
+
+% now, try each of these examples in the query REPL
+/*
+Note that
+... ;
+false.
+means that we asked if we wanted more answers, said yes (;), and got none additional.
+*/
+
 ty([], lam(x, var(x)), T).
-ty([], lam(x, var(x)), T).
+/*p
+T = arr(_A, _A) ;
+false.
+*/
 
-T = arr(A,A) ? a
-a
-
-no
-
-| ?-
 solve0(ty([], lam(x, var(x)), T), P, Ok).
-solve0(ty([], lam(x, var(x)), T), P, Ok).
+/*
+T = arr(_A, _A),
+P = by(ty([], lam(x, var(x)), arr(_A, _A)), by(ty([(x, _A)], var(x), _A), by(in((x, _A), [(x, _A)]), builtin))),
+Ok = true.
+*/
 
-Ok = true
-P = (ty([],lam(x,var(x)),arr(A,A)):-(add([],(x,A),[(x,A)]):-builtin),(ty([(x,A)],var(x),A):-(in((x,A),[(x,A)]):-builtin)))
-T = arr(A,A)
-
-yes
-
-| ?-
 ty([], lam(x,lam(y,var(x))), T).
-ty([], lam(x,lam(y,var(x))), T).
-
-T = arr(A,arr(_,A)) ? a
-a
-
-no
-
-| ?-
+/*
+T = arr(_A, arr(_, _A)) ;
+false.
+*/
 
 solve0(ty([], lam(x,lam(y,var(x))), T), P, Ok).
+/*
+T = arr(_A, arr(_B, _A)),
+P = by(ty([], lam(x, lam(y, var(x))), arr(_A, arr(_B, _A))), by(ty([(x, _A)], lam(y, var(x)), arr(_B, _A)), by(ty([(y, _B), (x, _A)], var(x), _A), by(in((x, _A), [(y, _B), (x, _A)]), builtin)))),
+Ok = true.
+*/
 
-Ok = true
-P = (ty([],lam(x,lam(y,var(x))),arr(A,arr(B,A))):-(add([],(x,A),[(x,A)]):-builtin),(ty([(x,A)],lam(y,var(x)),arr(B,A)):-(add([(x,A)],(y,B),[(y,B),(x,A)]):-builtin),(ty([(y,B),(x,A)],var(x),A):-(in((x,A),[(y,B),(x,A)]):-builtin))))
-T = arr(A,arr(B,A))
-
-yes
-
-| ?-
 ty([], lam(x,lam(x,var(x))), T).
-ty([], lam(x,lam(x,var(x))), T).
+/*
+T = arr(_, arr(_A, _A)) ;
+false.
+*/
 
-T = arr(_,arr(A,A)) ? a
-a
-
-no
-
-| ?-
 solve0(ty([], lam(x,lam(x,var(x))), T), P, Ok).
-solve0(ty([], lam(x,lam(x,var(x))), T), P, Ok).
+/*
+T = arr(_A, arr(_B, _B)),
+P = by(ty([], lam(x, lam(x, var(x))), arr(_A, arr(_B, _B))), by(ty([(x, _A)], lam(x, var(x)), arr(_B, _B)), by(ty([(x, _B), (x, _A)], var(x), _B), by(in((x, _B), [(x, _B), (x, _A)]), builtin)))),
+Ok = true.
+*/
 
-Ok = true
-P = (ty([],lam(x,lam(x,var(x))),arr(A,arr(B,B))):-(add([],(x,A),[(x,A)]):-builtin),(ty([(x,A)],lam(x,var(x)),arr(B,B)):-(add([(x,A)],(x,B),[(x,B),(x,A)]):-builtin),(ty([(x,B),(x,A)],var(x),B):-(in((x,B),[(x,B),(x,A)]):-builtin))))
-T = arr(A,arr(B,B))
-
-yes
-
-| ?- ty([], lam(x,app(var(x),var(x))), T).
 ty([], lam(x,app(var(x),var(x))), T).
+/*
+T = arr(_S1, _A), % where
+    _S1 = arr(_S1, _A) ;
+false.
+*/
 
-cannot display cyclic term for T ? a
-a
-
-| ?-
 tyc([], lam(x,app(var(x),var(x))), T).
-tyc([], lam(x,app(var(x),var(x))), T).
+/*
+false.
+*/
 
-no
-
-| ?- solve0(ty([], lam(x,app(var(x),var(x))), T), P, Ok).
 solve0(ty([], lam(x,app(var(x),var(x))), T), P, Ok).
+/*
+T = arr(_S1, _A), % where
+    _S1 = arr(_S1, _A),
+P = by(ty([], lam(x, app(var(x), var(x))), arr(_S1, _A)), by(ty([(x, _S1)], app(var(x), var(x)), _A), (by(ty([(x, _S1)], var(x), arr(_S1, _A)), by(in((x, arr(_S1, _A)), [(x, _S1)]), builtin)), by(ty([(x, _S1)], var(x), _S1), by(in((x, _S1), [(x, _S1)]), builtin))))),
+Ok = true.
+*/
 
-Ok = true
-cannot display cyclic term for P
-cannot display cyclic term for T
-
-yes
-
-| ?- solve0(tyc([], lam(x,app(var(x),var(x))), T), P, Ok).
 solve0(tyc([], lam(x,app(var(x),var(x))), T), P, Ok).
-
-Ok = false
-P = (tyc([],lam(x,app(var(x),var(x))),arr(arr(A,B),B)):-(add([],(x,arr(A,B)),[(x,arr(A,B))]):-builtin),(tyc([(x,arr(A,B))],app(var(x),var(x)),B):-(tyc([(x,arr(A,B))],var(x),arr(A,B)):-(in((x,arr(A,B)),[(x,arr(A,B))]):-builtin),(unify_with_occurs_check(arr(A,B),arr(A,B)):-builtin)),(tyc([(x,arr(A,B))],var(x),arr(A,B)):-(in((x,arr(A,B)),[(x,arr(A,B))]):-builtin),(unify_with_occurs_check(arr(A,B),arr(A,B)):-builtin)),(unify_with_occurs_check(arr(A,B),A):-builtin-error),(unify_with_occurs_check(B,B):-builtin)),(unify_with_occurs_check(arr(A,B),arr(A,B)):-builtin),(unify_with_occurs_check(B,B):-builtin))
-T = arr(arr(A,B),B)
-
-yes
-
-| ?- solve0(typ([], lam(x,app(var(x),var(x))), T), P, Ok).
-solve0(typ([], lam(x,app(var(x),var(x))), T), P, Ok).
-
-Ok = false
-P = (typ([],lam(x,app(var(x),var(x))),arr(arr(A,B),B)):-(typ([(x,arr(A,B))],app(var(x),var(x)),B):-(typ([(x,arr(A,B))],var(x),arr(A,B)):-(in((x,arr(A,B)),[(x,arr(A,B))]):-builtin)),(typ([(x,arr(A,B))],var(x),arr(A,B)):-(in((x,arr(A,B)),[(x,arr(A,B))]):-builtin)),(unify_with_occurs_check(A,arr(A,B)):-builtin-error)))
-T = arr(arr(A,B),B)
-
-yes
+/*
+T = arr(arr(_A, _B), _B),
+P = by(tyc([], lam(x, app(var(x), var(x))), arr(arr(_A, _B), _B)), (by(tyc([(x, arr(_A, _B))], app(var(x), var(x)), _B), (by(tyc([(x, arr(_A, _B))], var(x), arr(_A, _B)), (by(in((x, arr(_A, _B)), [(x, arr(_A, _B))]), builtin), by(unify_with_occurs_check(arr(_A, _B), arr(_A, _B)), builtin))), by(tyc([(x, arr(_A, _B))], var(x), arr(_A, _B)), (by(in((x, arr(_A, _B)), [(x, arr(_A, _B))]), builtin), by(unify_with_occurs_check(arr(_A, _B), arr(_A, _B)), builtin))), error(unify_with_occurs_check(arr(_A, _B), _A), builtin), by(unify_with_occurs_check(_B, _B), builtin))), by(unify_with_occurs_check(arr(_A, _B), arr(_A, _B)), builtin), by(unify_with_occurs_check(_B, _B), builtin))),
+Ok = false.
+*/
 
 solve0(typ([], lam(x,app(var(x),var(x))), T), P, Ok).
+/*
+T = arr(arr(_A, _B), _B),
+P = by(typ([], lam(x, app(var(x), var(x))), arr(arr(_A, _B), _B)), by(typ([(x, arr(_A, _B))], app(var(x), var(x)), _B), (by(typ([(x, arr(_A, _B))], var(x), arr(_A, _B)), by(in((x, arr(_A, _B)), [(x, arr(_A, _B))]), builtin)), by(typ([(x, arr(_A, _B))], var(x), arr(_A, _B)), by(in((x, arr(_A, _B)), [(x, arr(_A, _B))]), builtin)), error(unify_with_occurs_check(_A, arr(_A, _B)), builtin)))),
+Ok = false.
+*/
 
-Ok = false
-P = by(typ([],lam(x,app(var(x),var(x))),arr(arr(A,B),B)),by(typ([(x,arr(A,B))],app(var(x),var(x)),B),(by(typ([(x,arr(A,B))],var(x),arr(A,B)),by(in((x,arr(A,B)),[(x,arr(A,B))]),builtin)),by(typ([(x,arr(A,B))],var(x),arr(A,B)),by(in((x,arr(A,B)),[(x,arr(A,B))]),builtin)),error(unify_with_occurs_check(A,arr(A,B)),builtin))))
-T = arr(arr(A,B),B)
+solve0(typ([], lam(x,app(var(x),var(x))), T), P, Ok).
+/*
+T = arr(arr(_A, _B), _B),
+P = by(typ([], lam(x, app(var(x), var(x))), arr(arr(_A, _B), _B)), by(typ([(x, arr(_A, _B))], app(var(x), var(x)), _B), (by(typ([(x, arr(_A, _B))], var(x), arr(_A, _B)), by(in((x, arr(_A, _B)), [(x, arr(_A, _B))]), builtin)), by(typ([(x, arr(_A, _B))], var(x), arr(_A, _B)), by(in((x, arr(_A, _B)), [(x, arr(_A, _B))]), builtin)), error(unify_with_occurs_check(_A, arr(_A, _B)), builtin)))),
+Ok = false.
+*/
