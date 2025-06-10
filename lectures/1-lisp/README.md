@@ -2,6 +2,8 @@
 
 This lecture uses [Chez Scheme](https://cisco.github.io/ChezScheme/).
 
+## Metacircular Evaluator
+
 You can experiment with the evaluator in a `scheme` session, by:
 - running `scheme` interactively
 - `(load "evl.scm")`
@@ -12,7 +14,7 @@ You can experiment with the evaluator in a `scheme` session, by:
 - Now you can copy paste the entire `evl.scm` file, and run another level of `(repl 1)`.
 - With each level, the interpretive overlead increases.
 
-## Example session
+### Example session
 
 ```
 Chez Scheme Version 10.1.0
@@ -77,4 +79,24 @@ Copyright 1984-2024 Cisco Systems, Inc.
 3-1> (fact 6)
 ;==> 720
 ;(5418 cpu-time)
+```
+
+## Towards a reflective tower
+
+We add meta-continuations (lazily containing environments and continuations of all the levels above the current one), reifiers (like delta, whose body executes one level up, reflectors (like meaning), first-class values for environments and continuations.
+
+### Example session
+
+```
+Chez Scheme Version 10.1.0
+Copyright 1984-2024 Cisco Systems, Inc.
+
+> (load "tower.scm")
+> (repl 0)
+
+0-0> (load "exs_tower.scm")
+.
+;==> (args: (1 2 3 x) x-value: 42)
+
+0-1> 
 ```
