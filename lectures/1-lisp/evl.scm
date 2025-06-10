@@ -85,7 +85,7 @@
                  (evl (cons 'cond rest) env)))))
       (((tagged? 'lambda) exp)
        (list 'closure env (cadr exp)
-             (if (null? (cddr exp)) (cadr exp) (cons 'begin (cddr exp)))))
+             (if (null? (cdddr exp)) (caddr exp) (cons 'begin (cddr exp)))))
       (((tagged? 'load) exp)
        (file-load env (evl (cadr exp) env)))
       (else ;; application

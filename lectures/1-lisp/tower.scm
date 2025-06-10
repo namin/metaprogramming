@@ -143,8 +143,8 @@
 
       (((tagged? 'lambda) exp)
        (cont (list 'closure env (cadr exp)
-                   (if (null? (cddr exp)) 
-                       (cadr exp) 
+                   (if (null? (cdddr exp))
+                       (caddr exp)
                        (cons 'begin (cddr exp))))
              meta-cont))
       
