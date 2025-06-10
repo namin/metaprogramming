@@ -90,6 +90,11 @@ See the [diff](evl_vs_tower.diff), resulting from running:
 git diff --no-index evl.scm tower.scm >evl_vs_tower.diff
 ```
 
+Also, see the cleaner [diff with CPS base](evl_cps_vs_tower.diff), resulting from running:
+```bash
+git diff --no-index evl_cps.scm tower.scm >evl_cps_vs_tower.diff
+```
+
 ### Example session
 
 ```
