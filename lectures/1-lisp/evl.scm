@@ -192,7 +192,7 @@
                   (if (eq? v *quit*)
                       *quit*
                       (begin
-                        (display ";==> ") (display v)
+                        (display ";==> ") (write v)
                         (newline)
                         (display ";(") (display elapsed) (display " cpu-time)")
                         (newline)

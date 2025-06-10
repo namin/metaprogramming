@@ -363,7 +363,7 @@
           (lambda ()
             (evl exp env
                  (lambda (v mc)
-                   (display ";==> ") (display v)
+                   (display ";==> ") (write v)
                    (newline)
                    (repl-loop evl env meta-cont level (+ iter 1)))
                  meta-cont))))))))
