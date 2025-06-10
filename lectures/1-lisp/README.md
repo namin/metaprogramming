@@ -85,6 +85,11 @@ Copyright 1984-2024 Cisco Systems, Inc.
 
 We add meta-continuations (lazily containing environments and continuations of all the levels above the current one), reifiers (like delta, whose body executes one level up, reflectors (like meaning), first-class values for environments and continuations.
 
+See the [diff](evl_vs_tower.diff), resulting from running:
+```bash
+git diff --no-index evl.scm tower.scm >evl_vs_tower.diff
+```
+
 ### Example session
 
 ```
