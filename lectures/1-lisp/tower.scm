@@ -2,10 +2,7 @@
   (lambda (env x)
     (if (null? env)
         #f
-        (let ((b (assq x (car env))))
-          (if b
-              b
-              (find-binding (cdr env) x))))))
+        (or (assq x (car env)) (find-binding (cdr env) x)))))
 
 (define env-lookup
   (lambda (env x)
@@ -107,14 +104,28 @@
             meta-cont))
       
       (((tagged? 'and) exp)
-       ;; assumes exactly two arguments
-       (evl (list 'if (cadr exp) (caddr exp) #f) env cont meta-cont))
-      
-      (((tagged? 'or) exp)
-       ;; assumes we only care about boolean results
        (if (null? (cdr exp))
            (cont #f meta-cont)
-           (evl (list 'if (cadr exp) #t (cons 'or (cddr exp))) env cont meta-cont)))
+           (if (null? (cddr exp))
+               (evl (cadr exp) env cont meta-cont)
+               (evl (cadr exp) env
+                    (lambda (v mc)
+                      (if v
+                          (evl (cons 'and (cddr exp)) env cont mc)
+                          (cont #f mc)))
+                    meta-cont))))
+      
+      (((tagged? 'or) exp)
+       (if (null? (cdr exp))
+           (cont #t meta-cont)
+           (if (null? (cddr exp))
+               (evl (cadr exp) env cont meta-cont)
+               (evl (cadr exp) env
+                    (lambda (v mc)
+                      (if v
+                          (cont v mc)
+                          (evl (cons 'or (cddr exp)) env cont mc)))
+                    meta-cont))))
       
       (((tagged? 'cond) exp)
        (if (null? (cdr exp))
