@@ -57,44 +57,37 @@
     (cond
       ((or (number? exp) (boolean? exp) (string? exp))
        (cont exp meta-cont))
-      
       ((symbol? exp)
        (cont (env-lookup env exp) meta-cont))
-      
       (((tagged? 'quote) exp)
        (cont (cadr exp) meta-cont))
-      
       (((tagged? 'begin) exp)
        (if (null? (cddr exp))
            (evl (cadr exp) env cont meta-cont)
-           (evl (cadr exp) env 
-                (lambda (v mc) 
+           (evl (cadr exp) env
+                (lambda (v mc)
                   (evl (cons 'begin (cddr exp)) env cont mc))
                 meta-cont)))
-      
       (((tagged? 'let) exp)
        (let ((params (map car (cadr exp)))
              (args (map cadr (cadr exp)))
              (body (cons 'begin (cddr exp))))
          (evl (cons (list 'lambda params body) args) env cont meta-cont)))
-      
       (((tagged? 'define) exp)
        (let ((old-frame (car env))
              (b (cons (cadr exp) 'undefined)))
          (let ((new-frame (cons b old-frame)))
            (set-car! env new-frame)
-           (evl (caddr exp) env 
+           (evl (caddr exp) env
                 (lambda (r mc)
                   (set-cdr! b r)
                   (cont 'undefined mc))
                 meta-cont))))
-      
       (((tagged? 'set!) exp)
        (evl (caddr exp) env
             (lambda (val mc)
               (eval-set! (cadr exp) val env cont mc))
             meta-cont))
-      
       (((tagged? 'if) exp)
        (evl (cadr exp) env
             (lambda (v mc)
@@ -102,7 +95,6 @@
                   (evl (caddr exp) env cont mc)
                   (evl (cadddr exp) env cont mc)))
             meta-cont))
-      
       (((tagged? 'and) exp)
        (if (null? (cdr exp))
            (cont #f meta-cont)
@@ -114,7 +106,6 @@
                           (evl (cons 'and (cddr exp)) env cont mc)
                           (cont #f mc)))
                     meta-cont))))
-      
       (((tagged? 'or) exp)
        (if (null? (cdr exp))
            (cont #t meta-cont)
@@ -126,7 +117,6 @@
                           (cont v mc)
                           (evl (cons 'or (cddr exp)) env cont mc)))
                     meta-cont))))
-      
       (((tagged? 'cond) exp)
        (if (null? (cdr exp))
            (cont 'undefined meta-cont)
@@ -140,18 +130,16 @@
                             (evl (cadr clause) env cont mc)
                             (evl (cons 'cond rest) env cont mc)))
                       meta-cont)))))
-
       (((tagged? 'lambda) exp)
        (cont (list 'closure env (cadr exp)
                    (if (null? (cdddr exp))
                        (caddr exp)
                        (cons 'begin (cddr exp))))
              meta-cont))
-      
+
       (((tagged? 'delta) exp)
        (cont (list 'delta-reifier env (cadr exp) (caddr exp))
              meta-cont))
-      
       (((tagged? 'meaning) exp)
        (evl (cadr exp) env
             (lambda (e mc)
@@ -159,18 +147,16 @@
                    (lambda (r mc)
                      (evl (cadddr exp) env
                           (lambda (k mc)
-                            (evl e (cadr r) (cadr k) 
+                            (evl e (cadr r) (cadr k)
                                  (cons (cons env cont) mc)))
                           mc))
                    mc))
             meta-cont))
-      
       (((tagged? 'load) exp)
        (evl (cadr exp) env
             (lambda (filename mc)
               (file-load env filename cont mc))
             meta-cont))
-      
       (else
        (evl (car exp) env
             (lambda (p mc)
@@ -211,7 +197,7 @@
              (params (caddr p))
              (body (cadddr p)))
          (evl body (env-extend clo-env params args) cont meta-cont)))
-      
+
       (((tagged? 'delta-reifier) p)
        (let ((forced-mc (meta-cont-force meta-cont))
              (reifier-env (cadr p))
@@ -221,14 +207,14 @@
                (upper-cont (cdr (car forced-mc)))
                (upper-meta-cont (cdr forced-mc))
                (k-proc (list 'continuation (lambda (v mc) (cont v meta-cont)))))
-           (evl body 
-                (env-extend upper-env params 
-                           (list args 
+           (evl body
+                (env-extend upper-env params
+                           (list args
                                  (list 'environment env)
                                  k-proc))
                 upper-cont
                 upper-meta-cont))))
-      
+
       (((tagged? 'environment) p)
        (let ((e (cadr p)))
          (let ((n (length args)))
@@ -236,13 +222,13 @@
            ((= n 0) (cont e meta-cont))
            ((= n 1) (cont (env-lookup e (car args)) meta-cont))
            (else (error 'app "environment expects 0 or 1 args"))))))
-      
+
       (((tagged? 'continuation) p)
        (let ((k (cadr p)))
          (if (= (length args) 1)
              (k (car args) meta-cont)
              (error 'app "continuation expects 1 arg"))))
-      
+
       ((procedure? p)
        (cont (apply p args) meta-cont))
 
@@ -279,7 +265,7 @@
 
 (define call-with-input-file-with-context
   (lambda (filename proc env cont meta-cont)
-    (call-with-input-file 
+    (call-with-input-file
       filename
       (lambda (port)
         (app proc (list port) env cont meta-cont)))))
@@ -293,15 +279,15 @@
             (cont last-value meta-cont))
           (begin
             (display ".")
-            (evl exp env 
-                 (lambda (v mc) 
+            (evl exp env
+                 (lambda (v mc)
                    (file-load-iter env port v cont mc))
                  meta-cont))))))
 
 (define file-load
   (lambda (env filename cont meta-cont)
     (call-with-input-file filename
-      (lambda (port) 
+      (lambda (port)
         (file-load-iter env port 'undefined cont meta-cont)))))
 
 (define make-global-frame
@@ -351,8 +337,8 @@
      (cons 'call-with-input-file 'call-with-input-file-primitive)
      (cons 'old-cont #f)
      (cons 'reify-env (lambda () (list 'environment (make-global-env))))
-     (cons 'reify-cont (lambda () (list 'continuation 
-                                        (lambda (v mc) 
+     (cons 'reify-cont (lambda () (list 'continuation
+                                        (lambda (v mc)
                                           (display "Result: ")
                                           (display v)
                                           (newline)
@@ -366,7 +352,7 @@
 
 (define repl-loop
   (lambda (evl env meta-cont level iter)
-    (newline) 
+    (newline)
     (display level) (display "-") (display iter) (display "> ")
     (let ((exp (read)))
       (cond

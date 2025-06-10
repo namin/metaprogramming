@@ -50,12 +50,7 @@
        (let ((params (map car (cadr exp)))
              (args (map cadr (cadr exp)))
              (body (cons 'begin (cddr exp))))
-         ;; example
-         ;; (let ((a 1) (b 2)) (+ a b))
-         ;; ==>
-         ;; ((lambda (a b) (+ a b) 1 2)
-         (let ((t (cons (list 'lambda params body)
-                        args)))
+         (let ((t (cons (list 'lambda params body) args)))
            (evl t env))))
       (((tagged? 'define) exp)
        (let ((old-frame (car env))
@@ -79,7 +74,6 @@
                (if (evl (cadr exp) env)
                    (evl (cons 'and (cddr exp)) env)
                    #f))))
-
       (((tagged? 'or) exp)
        (if (null? (cdr exp))
            #t
@@ -89,7 +83,6 @@
                  (if v
                      v
                      (evl (cons 'or (cddr exp)) env))))))
-
       (((tagged? 'cond) exp)
        (if (null? (cdr exp))
            'undefined
