@@ -166,6 +166,7 @@
 
 (define eval-set!
   (lambda (var val env cont meta-cont)
+    ;; TODO: need to check each frame, not just the first
     (let ((binding (assq var (car env))))
       (if binding
           (begin
