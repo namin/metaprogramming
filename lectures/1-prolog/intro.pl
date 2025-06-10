@@ -1,3 +1,5 @@
+% -*- Mode: Prolog -*-
+
 :- public(edge/2).
 edge(a,b).
 edge(b,c).

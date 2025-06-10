@@ -1,3 +1,5 @@
+% -*- Mode: Prolog -*-
+
 %% Environment, with shadowing
 
 in((X,A),G) :- member((X,A),G), !.

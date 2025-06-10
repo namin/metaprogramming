@@ -1,3 +1,5 @@
+% -*- Mode: Prolog -*-
+
 | ?-
 ty([], lam(x, var(x)), T).
 ty([], lam(x, var(x)), T).

@@ -1,3 +1,5 @@
+% -*- Mode: Prolog -*-
+
 and(false,false,false).
 and(false,true,false).
 and(true,false,false).

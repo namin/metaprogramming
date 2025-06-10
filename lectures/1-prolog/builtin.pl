@@ -1,3 +1,5 @@
+% -*- Mode: Prolog -*-
+
 builtin(in(A,B)).
 
 builtin(unify_with_occurs_check(A,B)).
