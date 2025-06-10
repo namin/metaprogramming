@@ -1,11 +1,15 @@
-(define env-lookup
+(define find-binding
   (lambda (env x)
     (if (null? env)
-        (error 'env-lookup (format "unbound variable ~a" x))
-        (let ((b (assq x (car env))))
-          (if b
-              (cdr b)
-              (env-lookup (cdr env) x))))))
+        #f
+        (or (assq x (car env)) (find-binding (cdr env) x)))))
+
+(define env-lookup
+  (lambda (env x)
+    (let ((b (find-binding env x)))
+      (if b
+          (cdr b)
+          (error 'env-lookup (format "unbound variable ~a" x))))))
 
 (define make-frame
   (lambda (params args)
@@ -68,13 +72,24 @@
            (evl (caddr exp) env)
            (evl (cadddr exp) env)))
       (((tagged? 'and) exp)
-       ;; assumes exactly two arguments
-       (evl (list 'if (cadr exp) (caddr exp) #f) env))
-      (((tagged? 'or) exp)
-       ;; assumes we only care about boolean results
        (if (null? (cdr exp))
            #f
-           (evl (list 'if (cadr exp) #t (cons 'or (cddr exp))) env)))
+           (if (null? (cddr exp))
+               (evl (cadr exp) env)
+               (if (evl (cadr exp) env)
+                   (evl (cons 'and (cddr exp)) env)
+                   #f))))
+
+      (((tagged? 'or) exp)
+       (if (null? (cdr exp))
+           #t
+           (if (null? (cddr exp))
+               (evl (cadr exp) env)
+               (let ((v (evl (cadr exp) env)))
+                 (if v
+                     v
+                     (evl (cons 'or (cddr exp)) env))))))
+
       (((tagged? 'cond) exp)
        (if (null? (cdr exp))
            'undefined
