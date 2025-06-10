@@ -340,7 +340,6 @@
     (cons (make-global-frame) '())))
 
 (print-graph #t)
-(define *quit* ''eof)
 
 (define repl-loop
   (lambda (evl env meta-cont level iter)
@@ -359,14 +358,19 @@
          (with-exception-handler
           (lambda (c)
             (display ";Error: ") (display-condition c) (newline)
-            (repl-loop evl env  meta-cont level (+ iter 1)))
+            (repl-loop evl env meta-cont level (+ iter 1)))
           (lambda ()
-            (evl exp env
-                 (lambda (v mc)
-                   (display ";==> ") (write v)
-                   (newline)
-                   (repl-loop evl env meta-cont level (+ iter 1)))
-                 meta-cont))))))))
+            (let ((start (cpu-time)))
+              ((evl exp env
+                    (lambda (v mc)
+                      (let ((elapsed (- (cpu-time) start)))
+                        (display ";==> ") (write v)
+                        (newline)
+                        (display ";(") (display elapsed) (display " cpu-time)")
+                        (newline)
+                        (repl-loop evl env mc level (+ iter 1))))
+                    meta-cont)
+               )))))))))
 
 (define repl
   (lambda (level)
