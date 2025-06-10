@@ -229,7 +229,7 @@
      (cons 'string? string?)
      (cons 'symbol? symbol?)
      (cons 'length length)
-     (cons 'reverse reverse)     
+     (cons 'reverse reverse)
      (cons 'apply apply)
      (cons 'error error)
      (cons 'format format)

@@ -1,5 +1,5 @@
 diff --git a/evl_cps.scm b/tower.scm
-index dc9af04..6f76cb1 100644
+index 8a46995..6f76cb1 100644
 --- a/evl_cps.scm
 +++ b/tower.scm
 @@ -31,177 +31,264 @@
@@ -334,15 +334,6 @@ index dc9af04..6f76cb1 100644
  
  (define make-global-frame
    (lambda ()
-@@ -229,7 +316,7 @@
-      (cons 'string? string?)
-      (cons 'symbol? symbol?)
-      (cons 'length length)
--     (cons 'reverse reverse)     
-+     (cons 'reverse reverse)
-      (cons 'apply apply)
-      (cons 'error error)
-      (cons 'format format)
 @@ -248,42 +335,62 @@
       (cons 'map 'map-primitive)
       (cons 'with-exception-handler 'with-exception-handler-primitive)
