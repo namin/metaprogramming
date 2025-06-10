@@ -1,5 +1,5 @@
 diff --git a/evl.scm b/tower.scm
-index 13d14c2..c8fab8a 100644
+index 8e0d87b..6f76cb1 100644
 --- a/evl.scm
 +++ b/tower.scm
 @@ -31,103 +31,264 @@
@@ -91,8 +91,8 @@ index 13d14c2..c8fab8a 100644
 +            meta-cont))
        (((tagged? 'and) exp)
         (if (null? (cdr exp))
--           #f
-+           (cont #f meta-cont)
+-           #t
++           (cont #t meta-cont)
             (if (null? (cddr exp))
 -               (evl (cadr exp) env)
 -               (if (evl (cadr exp) env)
@@ -107,8 +107,8 @@ index 13d14c2..c8fab8a 100644
 +                    meta-cont))))
        (((tagged? 'or) exp)
         (if (null? (cdr exp))
--           #t
-+           (cont #t meta-cont)
+-           #f
++           (cont #f meta-cont)
             (if (null? (cddr exp))
 -               (evl (cadr exp) env)
 -               (let ((v (evl (cadr exp) env)))

@@ -97,7 +97,7 @@
             meta-cont))
       (((tagged? 'and) exp)
        (if (null? (cdr exp))
-           (cont #f meta-cont)
+           (cont #t meta-cont)
            (if (null? (cddr exp))
                (evl (cadr exp) env cont meta-cont)
                (evl (cadr exp) env
@@ -108,7 +108,7 @@
                     meta-cont))))
       (((tagged? 'or) exp)
        (if (null? (cdr exp))
-           (cont #t meta-cont)
+           (cont #f meta-cont)
            (if (null? (cddr exp))
                (evl (cadr exp) env cont meta-cont)
                (evl (cadr exp) env

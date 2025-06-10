@@ -68,7 +68,7 @@
            (evl (cadddr exp) env)))
       (((tagged? 'and) exp)
        (if (null? (cdr exp))
-           #f
+           #t
            (if (null? (cddr exp))
                (evl (cadr exp) env)
                (if (evl (cadr exp) env)
@@ -76,7 +76,7 @@
                    #f))))
       (((tagged? 'or) exp)
        (if (null? (cdr exp))
-           #t
+           #f
            (if (null? (cddr exp))
                (evl (cadr exp) env)
                (let ((v (evl (cadr exp) env)))
