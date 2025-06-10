@@ -20,8 +20,14 @@ The solution to assignment 1 has been released as part of the [Lisp Variations](
 
 ## Installation
 
+### for Scala code
+
 - SBT: https://www.scala-sbt.org/
 
 - In each inner directory, can do
   * `sbt compile`
   * `sbt run` or `sbt test`
+
+ ## Highlights
+
+ - [Lecture 1-lisp](lectures/1-lisp) shows a metacircular interpreter that can evaluate itself, and also an extension towards a reflective tower.
