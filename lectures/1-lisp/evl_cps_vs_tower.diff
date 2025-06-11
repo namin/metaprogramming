@@ -1,5 +1,5 @@
 diff --git a/evl_cps.scm b/tower.scm
-index 8a46995..6f76cb1 100644
+index 90dc249..6f76cb1 100644
 --- a/evl_cps.scm
 +++ b/tower.scm
 @@ -31,177 +31,264 @@
@@ -171,7 +171,7 @@ index 8a46995..6f76cb1 100644
 -            (lambda (p)
 -              (evlis (cdr exp) env
 -                     (lambda (args)
--                       (app p args cont)))))))))
+-                       (app p args env cont)))))))))
 +            (lambda (p mc)
 +              (if ((tagged? 'delta-reifier) p)
 +                  (app p (cdr exp) env cont mc)
@@ -210,7 +210,7 @@ index 8a46995..6f76cb1 100644
 +             meta-cont))))
  
  (define app
--  (lambda (p args cont)
+-  (lambda (p args env cont)
 +  (lambda (p args env cont meta-cont)
      (cond
        (((tagged? 'closure) p)
@@ -257,53 +257,52 @@ index 8a46995..6f76cb1 100644
  
        ;; we hard code higher-order primitives
        ((eq? p 'map-primitive)
--       (map-with-context (car args) (cadr args) cont))
+-       (map-with-context (car args) (cadr args) env cont))
 +       (map-with-context (car args) (cadr args) env cont meta-cont))
        ((eq? p 'with-exception-handler-primitive)
--       (with-exception-handler-with-context (car args) (cadr args) cont))
+-       (with-exception-handler-with-context (car args) (cadr args) env cont))
 +       (with-exception-handler-with-context (car args) (cadr args) env cont meta-cont))
        ((eq? p 'call-with-input-file-primitive)
--       (call-with-input-file-with-context (car args) (cadr args) cont))
+-       (call-with-input-file-with-context (car args) (cadr args) env cont))
 +       (call-with-input-file-with-context (car args) (cadr args) env cont meta-cont))
  
        (else
         (error 'app (format "expected procedure, not ~a" p))))))
  
  (define map-with-context
--  (lambda (f xs cont)
+-  (lambda (f xs env cont)
 +  (lambda (f xs env cont meta-cont)
      (define map-helper
        (lambda (xs acc)
          (if (null? xs)
 -            (cont (reverse acc))
--            (app f (list (car xs))
++            (cont (reverse acc) meta-cont)
+             (app f (list (car xs)) env
 -                 (lambda (v)
 -                   (map-helper (cdr xs) (cons v acc)))))))
-+            (cont (reverse acc) meta-cont)
-+            (app f (list (car xs)) env
 +                 (lambda (v mc)
 +                   (map-helper (cdr xs) (cons v acc)))
 +                 meta-cont))))
      (map-helper xs '())))
  
  (define with-exception-handler-with-context
--  (lambda (handler thunk cont)
+-  (lambda (handler thunk env cont)
 +  (lambda (handler thunk env cont meta-cont)
      (with-exception-handler
        (lambda (exn)
--        (app handler (list exn) cont))
+-        (app handler (list exn) env cont))
 +        (app handler (list exn) env cont meta-cont))
        (lambda ()
--        (app thunk '() cont)))))
+-        (app thunk '() env cont)))))
 +        (app thunk '() env cont meta-cont)))))
  
  (define call-with-input-file-with-context
--  (lambda (filename proc cont)
+-  (lambda (filename proc env cont)
 +  (lambda (filename proc env cont meta-cont)
      (call-with-input-file
        filename
        (lambda (port)
--        (app proc (list port) cont)))))
+-        (app proc (list port) env cont)))))
 +        (app proc (list port) env cont meta-cont)))))
  
  (define file-load-iter

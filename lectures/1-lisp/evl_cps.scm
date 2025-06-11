@@ -116,7 +116,7 @@
             (lambda (p)
               (evlis (cdr exp) env
                      (lambda (args)
-                       (app p args cont)))))))))
+                       (app p args env cont)))))))))
 
 (define eval-set!
   (lambda (var val env cont)
@@ -138,7 +138,7 @@
                         (cont (cons v vs)))))))))
 
 (define app
-  (lambda (p args cont)
+  (lambda (p args env cont)
     (cond
       (((tagged? 'closure) p)
        (let ((clo-env (cadr p))
@@ -150,40 +150,40 @@
 
       ;; we hard code higher-order primitives
       ((eq? p 'map-primitive)
-       (map-with-context (car args) (cadr args) cont))
+       (map-with-context (car args) (cadr args) env cont))
       ((eq? p 'with-exception-handler-primitive)
-       (with-exception-handler-with-context (car args) (cadr args) cont))
+       (with-exception-handler-with-context (car args) (cadr args) env cont))
       ((eq? p 'call-with-input-file-primitive)
-       (call-with-input-file-with-context (car args) (cadr args) cont))
+       (call-with-input-file-with-context (car args) (cadr args) env cont))
 
       (else
        (error 'app (format "expected procedure, not ~a" p))))))
 
 (define map-with-context
-  (lambda (f xs cont)
+  (lambda (f xs env cont)
     (define map-helper
       (lambda (xs acc)
         (if (null? xs)
             (cont (reverse acc))
-            (app f (list (car xs))
+            (app f (list (car xs)) env
                  (lambda (v)
                    (map-helper (cdr xs) (cons v acc)))))))
     (map-helper xs '())))
 
 (define with-exception-handler-with-context
-  (lambda (handler thunk cont)
+  (lambda (handler thunk env cont)
     (with-exception-handler
       (lambda (exn)
-        (app handler (list exn) cont))
+        (app handler (list exn) env cont))
       (lambda ()
-        (app thunk '() cont)))))
+        (app thunk '() env cont)))))
 
 (define call-with-input-file-with-context
-  (lambda (filename proc cont)
+  (lambda (filename proc env cont)
     (call-with-input-file
       filename
       (lambda (port)
-        (app proc (list port) cont)))))
+        (app proc (list port) env cont)))))
 
 (define file-load-iter
   (lambda (env port last-value cont)
