@@ -255,7 +255,6 @@
     (cons (make-global-frame) '())))
 
 (print-graph #t)
-;; TODO what about *quit*, both here and other places??
 (define *quit* ''eof)
 
 (define repl-loop

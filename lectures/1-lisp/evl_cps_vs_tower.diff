@@ -1,5 +1,5 @@
 diff --git a/evl_cps.scm b/tower.scm
-index 90dc249..6f76cb1 100644
+index 4125bb5..6f76cb1 100644
 --- a/evl_cps.scm
 +++ b/tower.scm
 @@ -31,177 +31,264 @@
@@ -333,7 +333,7 @@ index 90dc249..6f76cb1 100644
  
  (define make-global-frame
    (lambda ()
-@@ -248,42 +335,62 @@
+@@ -248,41 +335,62 @@
       (cons 'map 'map-primitive)
       (cons 'with-exception-handler 'with-exception-handler-primitive)
       (cons 'call-with-input-file 'call-with-input-file-primitive)
@@ -352,7 +352,6 @@ index 90dc249..6f76cb1 100644
      (cons (make-global-frame) '())))
  
  (print-graph #t)
--;; TODO what about *quit*, both here and other places??
 -(define *quit* ''eof)
  
  (define repl-loop
