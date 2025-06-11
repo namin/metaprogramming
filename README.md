@@ -1,17 +1,25 @@
 # metaprogramming
 
-Course on Metaprogramming, University of Cambridge, UK
+Course on Metaprogramming
+
+Originally:
+University of Cambridge, UK
 Michaelmas Term 2018
 
-## Course Links
+Currently being updated for 2025
+
+ ## Highlights
+
+ - [Lecture 1-lisp](lectures/1-lisp) shows a metacircular interpreter that can evaluate itself, and also an extension towards a reflective tower.
+
+## Course Links for Original Edition
 
 - Part II: https://www.cl.cam.ac.uk/teaching/1819/Metaprog/
 - MPhil: https://www.cl.cam.ac.uk/teaching/1819/L305/
 
-## Lecture Notes and Slides
+## Lecture Notes
 
-- used to be available at https://www.cl.cam.ac.uk/~na482/meta/ -- no longer the case
-- [Lecture notes are still available.](https://namin.seas.harvard.edu/files/namin/files/metaprogramming-lecture-notes.pdf)
+- [Lecture notes from 2018 are still available.](https://namin.seas.harvard.edu/files/namin/files/metaprogramming-lecture-notes.pdf)
 - [A repo with a working draft for the updated lecture notes.](https://github.com/namin/metaprogramming-lecture-notes)
 
 ## Solution to Assignment 1
@@ -27,7 +35,3 @@ The solution to assignment 1 has been released as part of the [Lisp Variations](
 - In each inner directory, can do
   * `sbt compile`
   * `sbt run` or `sbt test`
-
- ## Highlights
-
- - [Lecture 1-lisp](lectures/1-lisp) shows a metacircular interpreter that can evaluate itself, and also an extension towards a reflective tower.
