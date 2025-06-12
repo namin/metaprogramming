@@ -5,7 +5,7 @@ The seminal FOL from the late 70s pioneered proof by reflection.
 
 The principle of proof by reflection:<br/>
 _“Change theorem proving in the theory into evaluation in the metatheory.”_<br/>
-(Weyrauch in section 9 of _Prolegomena to a Theory of Formal Reasoning_, 1970
+(Weyrauch in section 9 of _Prolegomena to a Theory of Formal Reasoning_, 1978
 [PDF](https://github.com/namin/GETFOL/blob/master/tst/prolegomena/Weyhrauch_Prolegomena.pdf))
 
 We show the reflection principle in action through a small example, in each of FOL and Lean.
