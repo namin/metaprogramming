@@ -6,9 +6,9 @@ declare funconst suc (NATNUM) = NATNUM;
 declare predconst Even 1;
 
 comment | Mix of true and false claims |
-axiom FACT1: Even(zro);              comment | TRUE |
-axiom FACT2: Even(suc(zro));         comment | FALSE |
-axiom FACT3: Even(suc(suc(zro)));    comment | TRUE |
+axiom FACT_EVEN0: Even(zro);              comment | TRUE |
+axiom FACT_EVEN1: Even(suc(zro));         comment | FALSE |
+axiom FACT_EVEN2: Even(suc(suc(zro)));    comment | TRUE |
 
 comment | Meta level |
 namecontext OBJ;
@@ -37,13 +37,13 @@ AXIOM CHECKTHM: forall f.(ISVALID(f) imp THEOREM(wffof(f)));
 SWITCHCONTEXT OBJ;
 
 comment | These should work |
-reflect CHECKTHM FACT1;
+reflect CHECKTHM FACT_EVEN0;
 theorem EVEN0 1;
 
-reflect CHECKTHM FACT3;
+reflect CHECKTHM FACT_EVEN2;
 theorem EVEN2 2;
 
 comment | This should fail - uncomment to test |
-comment | reflect CHECKTHM FACT2; |
+comment | reflect CHECKTHM FACT_EVEN1; |
 
 show axiom;
