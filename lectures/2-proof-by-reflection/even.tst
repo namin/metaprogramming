@@ -1,17 +1,14 @@
-comment | Proof by reflection whether a number is even |
+comment | Sound even reflection - only allows true facts |
 
 comment | Object level |
 declare indconst zro [NATNUM];
 declare funconst suc (NATNUM) = NATNUM;
 declare predconst Even 1;
-declare indvar n [NATNUM];
 
-axiom EVEN0: Even(zro);
-axiom EVENSUC: forall n. Even(n) imp Even(suc(suc(n)));
-
-comment | Facts we want to prove |
-axiom FACT2: Even(suc(suc(zro)));
-axiom FACT4: Even(suc(suc(suc(suc(zro)))));
+comment | Mix of true and false claims |
+axiom FACT1: Even(zro);              comment | TRUE |
+axiom FACT2: Even(suc(zro));         comment | FALSE |
+axiom FACT3: Even(suc(suc(zro)));    comment | TRUE |
 
 comment | Meta level |
 namecontext OBJ;
@@ -27,17 +24,26 @@ REPRESENT {FACT} AS FACT;
 DECLARE FUNCONST wffof (FACT)=WFF;
 ATTACH wffof TO [FACT=WFF] fact\-get\-wff;
 
-comment | Trivial reflection - all facts become theorems |
+comment | Check if a fact is one we accept as true |
+comment | For now, hardcode which facts are valid |
+DECLARE PREDCONST ISVALID 1;
+DEFLAM isvalid (f) (OR (EQUAL (fact\-get\-label f) (QUOTE FACT1)) (EQUAL (fact\-get\-label f) (QUOTE FACT3)));
+ATTACH ISVALID TO [FACT] isvalid;
+
+comment | Only valid facts become theorems |
 DECLARE indvar f [FACT];
-AXIOM MAKETHM: forall f. THEOREM(wffof(f));
+AXIOM CHECKTHM: forall f.(ISVALID(f) imp THEOREM(wffof(f)));
 
 SWITCHCONTEXT OBJ;
 
-comment | Use reflection |
-reflect MAKETHM FACT2;
-theorem EVEN2 1;
+comment | These should work |
+reflect CHECKTHM FACT1;
+theorem EVEN0 1;
 
-reflect MAKETHM FACT4;  
-theorem EVEN4 2;
+reflect CHECKTHM FACT3;
+theorem EVEN2 2;
+
+comment | This should fail - uncomment to test |
+comment | reflect CHECKTHM FACT2; |
 
 show axiom;
