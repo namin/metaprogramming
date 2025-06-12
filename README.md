@@ -11,6 +11,7 @@ Currently being updated for 2025
  ## Highlights
 
  - [Lecture 1-lisp](lectures/1-lisp) shows a metacircular interpreter that can evaluate itself, and also an extension towards a reflective tower.
+ - [Lecture 2-lis](lecture/2-proof-by-reflection) revisits the reflection principle with an example from the seminal FOL to Lean.
 
 ## Course Links for Original Edition
 
