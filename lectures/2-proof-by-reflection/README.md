@@ -1,0 +1,14 @@
+# Proof by reflection
+
+The seminal FOL from the late 70s pioneered proof by reflection.
+[See a live reproduction of the FOL Prolegomena](https://io.livecode.ch/learn/namin/GETFOL).
+
+The principle of proof by reflection:<br/>
+_“Change theorem proving in the theory into evaluation in the metatheory.”_<br/>
+(Weyrauch in section 9 of _Prolegomena to a Theory of Formal Reasoning_, 1970
+[PDF](https://github.com/namin/GETFOL/blob/master/tst/prolegomena/Weyhrauch_Prolegomena.pdf))
+
+We show the reflection principle in action through a small example, in each of FOL and Lean.
+
+- [FOL](even.tst) ([live](https://io.livecode.ch/repl/namin/GETFOL#9781902967e45e3f0901260be9b9c2d0))
+- [Lean](even.lean)
