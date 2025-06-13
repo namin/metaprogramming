@@ -2,6 +2,8 @@
 
 This lecture uses [Chez Scheme](https://cisco.github.io/ChezScheme/).
 
+We show a metacircular interpreter that can evaluate itself, and also an extension towards a reflective tower.
+
 ## Metacircular Evaluator
 
 You can experiment with the evaluator in a `scheme` session, by:
