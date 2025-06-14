@@ -7,8 +7,6 @@
 
 (define empty-env (lambda (y) (error 'env (format "unbound variable: ~s" y))))
 
-(define (make-global-env) empty-env)
-
 (define (env-extend env params args)
   (if (null? params)
       env
@@ -16,9 +14,12 @@
             (a (car args)))
         (env-extend (lambda (y) (if (eq? x y) a (env y))) (cdr params) (cdr args)))))
 
+(define (make-global-env) (env-extend empty-env (list 'level) (list -1)))
+
 (define make-meta-cont-level
   (lambda (level)
-    (let ((upper-env (make-global-env)))
+    (let* ((upper-env (make-global-env))
+           (upper-env (env-extend upper-env (list 'level) (list level))))
       upper-env)))
 
 (define get-meta-cont
@@ -38,6 +39,8 @@
      ((symbol? exp) (env exp))
      ((boolean? exp) exp)
      ((number? exp) exp)
+     (((tagged? 'quote) exp)
+      (cadr exp))
      (((tagged? 'sub1) exp)
       (sub1 (lc-meta (cadr exp) env meta-k)))
      (((tagged? 'zero?) exp)
@@ -89,12 +92,18 @@
 
 (lc-tests lc empty-env)
 
-(define (lc-reflective-tests lc empty-env)
-  (eg (lc '((mu (e r) (meaning 1 r))) empty-env) 1)
-  (eg (lc '((mu (e r) (meaning (car e) r)) 1) empty-env) 1)
-  (eg (lc '((mu (e r) (meaning (car e) r)) (sub1 2)) empty-env) 1)
-  (eg (lc '((mu (e1 r1) ((mu (e2 r2) (meaning 1 r2))))) empty-env) 1)
+(define (lc-reflective-tests lc env)
+  (eg (lc '((mu (e r) (meaning 1 r))) env) 1)
+  (eg (lc '((mu (e r) (meaning (car e) r)) 1) env) 1)
+  (eg (lc '((mu (e r) (meaning (car e) r)) (sub1 2)) env) 1)
+  (eg (lc '((mu (e1 r1) ((mu (e2 r2) (meaning 1 r2))))) env) 1)
+
+  ;; shows level shifting, but the indices are a bit weird.
+  (eg (env 'level) -1)
+  (eg (lc '((mu (e r) (meaning (r 'level) r))) env) -1)
+  (eg (lc '((mu (e1 r1) ((mu (e2 r2) (meaning (r2 'level) r2))))) env) 0)
+  (eg (lc '((mu (e1 r1) ((mu (e2 r2) ((mu (e3 r3) (meaning (r3 'level) r3))))))) env) 1)
 )
 
-(lc-reflective-tests lc empty-env)
+(lc-reflective-tests lc (make-global-env))
 
