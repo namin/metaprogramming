@@ -24,7 +24,7 @@
               (display (format "Returned to level ~a with: " level))
               (display val)
               (newline)
-              '(repl-loop evl upper-env mc level 0))))))
+              val)))))
 
 (define get-meta-cont
   (lambda (level)
@@ -145,6 +145,7 @@
 
   (eg (lc '((delta (e r k) (meaning 1 r k))) empty-env) 1)
   (eg (lc '((delta (e r k) (meaning (car e) r k)) 1) empty-env) 1)
-  (eg (lc '((delta (e r k) (meaning (car e) r k)) (sub1 2)) empty-env) 1))
+  (eg (lc '((delta (e r k) (meaning (car e) r k)) (sub1 2)) empty-env) 1)
+  (eg (lc '((delta (e1 r1 k1) ((delta (e2 r2 k2) (meaning 1 r2 k2))))) empty-env) 1))
 
 (lc-reflective-tests lc empty-env)
