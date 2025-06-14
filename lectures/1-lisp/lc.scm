@@ -1,3 +1,8 @@
+;; translated from
+;; https://github.com/namin/lambdajam/blob/master/lc-sol.scm#L51
+
+(load "test-check.scm")
+
 (define tagged?
   (lambda (t)
     (lambda (e)
