@@ -5,41 +5,69 @@
 
 (define empty-env (lambda (y) (error 'env "unbound variable")))
 
-(define lc-cps
-  (lambda (exp env k)
+(define (make-global-env) empty-env)
+
+(define make-meta-cont-level
+  (lambda (level)
+    (let ((upper-env (make-global-env)))
+      (cons upper-env
+            (lambda (val mc)
+              (display (format "Returned to level ~a with: " level))
+              (display val)
+              (newline)
+              '(repl-loop evl upper-env mc level 0))))))
+
+(define get-meta-cont
+  (lambda (level)
+    (cons (make-meta-cont-level level)
+          (lambda () (get-meta-cont (+ level 1))))))
+
+(define meta-cont-force
+  (lambda (mc)
+    (if (procedure? (cdr mc))
+        (cons (car mc) ((cdr mc)))
+        mc)))
+
+(define lc-tower
+  (lambda (exp env k meta-k)
     (cond
-     ((symbol? exp) (k (env exp)))
-     ((boolean? exp) (k exp))
-     ((number? exp) (k exp))
+     ((symbol? exp) (k (env exp) meta-k))
+     ((boolean? exp) (k exp meta-k))
+     ((number? exp) (k exp meta-k))
      (((tagged? 'sub1) exp)
-      (lc-cps (cadr exp) env (lambda (v) (k (sub1 v)))))
+      (lc-tower (cadr exp) env (lambda (v mc) (k (sub1 v) mc)) meta-k))
      (((tagged? 'zero?) exp)
-      (lc-cps (cadr exp) env (lambda (v) (k (zero? v)))))
+      (lc-tower (cadr exp) env (lambda (v mc) (k (zero? v) mc)) meta-k))
      (((tagged? '*) exp)
-      (lc-cps (cadr exp) env (lambda (v1)
-                               (lc-cps (caddr exp) env (lambda (v2)
-                                                         (k (* v1 v2)))))))
+      (lc-tower (cadr exp) env (lambda (v1 mc)
+                                 (lc-tower (caddr exp) env (lambda (v2 mc)
+                                                             (k (* v1 v2) mc))
+                                           mc))
+              meta-k))
      (((tagged? 'if) exp)
-      (lc-cps (cadr exp) env (lambda (vc)
-                           (if vc
-                               (lc-cps (caddr exp) env k)
-                               (lc-cps (cadddr exp) env k)))))
+      (lc-tower (cadr exp) env (lambda (vc mc)
+                                 (if vc
+                                     (lc-tower (caddr exp) env k mc)
+                                     (lc-tower (cadddr exp) env k mc)))
+                meta-k))
      (((tagged? 'lambda) exp)
       (let ((x (car (cadr exp)))
             (body (caddr exp)))
-        (k (lambda (a k)
-             (lc-cps body
-                     (lambda (y) (if (eq? x y) a (env y)))
-                     k)))))
+        (k (lambda (a k mc)
+             (lc-tower body
+                       (lambda (y) (if (eq? x y) a (env y)))
+                       k mc))
+           meta-k)))
      (else
-      (lc-cps (car exp) env (lambda (vrator)
-                              (lc-cps (cadr exp) env (lambda (vrand)
-                                                       (vrator vrand k)))))))))
+      (lc-tower (car exp) env (lambda (vrator mc)
+                                (lc-tower (cadr exp) env (lambda (vrand mc)
+                                                           (vrator vrand k mc))
+                                          mc))
+                meta-k)))))
 
 (define lc
   (lambda (exp env)
-    (lc-cps exp env (lambda (v) v))))
-
+    (lc-tower exp env (lambda (v mc) v) (get-meta-cont 0))))
 
 (define (lc-tests lc empty-env)
   (eg (lc #f empty-env) #f)
