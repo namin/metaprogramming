@@ -98,11 +98,17 @@
   (eg (lc '((mu (e r) (meaning (car e) r)) (sub1 2)) env) 1)
   (eg (lc '((mu (e1 r1) ((mu (e2 r2) (meaning 1 r2))))) env) 1)
 
-  ;; shows level shifting, but the indices are a bit weird.
+  ;; level shifting
+
   (eg (env 'level) -1)
   (eg (lc '((mu (e r) (meaning (r 'level) r))) env) -1)
   (eg (lc '((mu (e1 r1) ((mu (e2 r2) (meaning (r2 'level) r2))))) env) 0)
   (eg (lc '((mu (e1 r1) ((mu (e2 r2) ((mu (e3 r3) (meaning (r3 'level) r3))))))) env) 1)
+
+  (eg (lc 'level env) -1)
+  (eg (lc '((mu (e r) (meaning 'level r))) env) -1)
+  (eg (lc '((mu (e1 r1) ((mu (e2 r2) (meaning 'level r2))))) env) 0)
+  (eg (lc '((mu (e1 r1) ((mu (e2 r2) ((mu (e3 r3) (meaning 'level r3))))))) env) 1)
 )
 
 (lc-reflective-tests lc (make-global-env))
