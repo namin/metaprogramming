@@ -5,7 +5,7 @@
     (lambda (e)
       (and (pair? e) (eq? t (car e))))))
 
-(define empty-env (lambda (y) (error 'env "unbound variable")))
+(define empty-env (lambda (y) (error 'env (format "unbound variable: ~s" y))))
 
 (define lc
   (lambda (exp env)
