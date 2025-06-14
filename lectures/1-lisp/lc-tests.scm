@@ -1,0 +1,18 @@
+(load "test-check.scm")
+
+(define (lc-tests lc empty-env)
+  (eg (lc #f empty-env) #f)
+  (eg (lc '(if #f #t #f) empty-env) #f)
+  (eg (lc '(((lambda (fun)
+               ((lambda (F)
+                  (F F))
+                (lambda (F)
+                  (fun (lambda (x) ((F F) x))))))
+             (lambda (factorial)
+                (lambda (n)
+                  (if (zero? n)
+                      1
+                      (* n (factorial (sub1 n)))))))
+            6)
+          empty-env)
+      720))

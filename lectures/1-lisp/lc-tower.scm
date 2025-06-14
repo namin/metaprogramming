@@ -1,4 +1,4 @@
-(load "test-check.scm")
+(load "lc-tests.scm")
 
 (define tagged?
   (lambda (t)

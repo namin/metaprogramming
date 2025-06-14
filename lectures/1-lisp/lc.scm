@@ -1,7 +1,4 @@
-;; translated from
-;; https://github.com/namin/lambdajam/blob/master/lc-sol.scm#L51
-
-(load "test-check.scm")
+(load "lc-tests.scm")
 
 (define tagged?
   (lambda (t)
@@ -45,22 +42,5 @@
   (lambda (exp env)
     (lc-cps exp env (lambda (v) v))))
 
-
-(define (lc-tests lc empty-env)
-  (eg (lc #f empty-env) #f)
-  (eg (lc '(if #f #t #f) empty-env) #f)
-  (eg (lc '(((lambda (fun)
-               ((lambda (F)
-                  (F F))
-                (lambda (F)
-                  (fun (lambda (x) ((F F) x))))))
-             (lambda (factorial)
-                (lambda (n)
-                  (if (zero? n)
-                      1
-                      (* n (factorial (sub1 n)))))))
-            6)
-          empty-env)
-      720))
 
 (lc-tests lc empty-env)

@@ -4,6 +4,10 @@ This lecture uses [Chez Scheme](https://cisco.github.io/ChezScheme/).
 
 We show a metacircular interpreter that can evaluate itself, and also an extension towards a reflective tower.
 
+## Warm-up Evaluator
+
+The `lc*.scm` file are taken from Dan Friedman's C311 course, also presented at the Workshop on Program Transformations at Lamba Jam. See [lc-sol.scm](https://github.com/namin/lambdajam/blob/master/lc-sol.scm) in the [lambdajam](https://github.com/namin/lambdajam) workshop repository.
+
 ## Metacircular Evaluator
 
 You can experiment with the evaluator in a `scheme` session, by:
