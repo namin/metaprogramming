@@ -178,8 +178,9 @@ object Main extends App {
   
   def verifyProgram(name: String, prog: Program): Unit = {
     println(s"\n=== Verifying $name ===")
+    println(s"\n${prettyPrint(prog)}")
     val vcs = Verifier.verify(prog)
-    println(s"Generated ${vcs.length} verification conditions")
+    println(s"\nGenerated ${vcs.length} verification conditions")
     vcs.zipWithIndex.foreach { case (vc, i) =>
       println(s"\nVC ${i+1}: ${prettyPrint(vc)}")
     }
@@ -204,6 +205,25 @@ object Main extends App {
     case Plus(a1, a2) => s"${prettyPrint(a1)} + ${prettyPrint(a2)}"
     case Minus(a1, a2) => s"${prettyPrint(a1)} - ${prettyPrint(a2)}"
     case Times(a1, a2) => s"${prettyPrint(a1)} * ${prettyPrint(a2)}"
+  }
+  
+  def prettyPrint(s: Stmt, indent: Int = 0): String = {
+    val spaces = "  " * indent
+    s match {
+      case Skip => s"${spaces}skip"
+      case Assign(x, a) => s"${spaces}$x := ${prettyPrint(a)}"
+      case Seq(s1, s2) => s"${prettyPrint(s1, indent)};\n${prettyPrint(s2, indent)}"
+      case If(b, s1, s2) => 
+        s"${spaces}if (${prettyPrint(b)}) then\n${prettyPrint(s1, indent + 1)}\n${spaces}else\n${prettyPrint(s2, indent + 1)}"
+      case While(b, inv, s) =>
+        s"${spaces}while (${prettyPrint(b)})\n${spaces}  inv: ${prettyPrint(inv)}\n${spaces}do\n${prettyPrint(s, indent + 1)}"
+    }
+  }
+  
+  def prettyPrint(prog: Program): String = {
+    s"Precondition:  ${prettyPrint(prog.pre)}\n" +
+    s"Program:\n${prettyPrint(prog.stmt)}\n" +
+    s"Postcondition: ${prettyPrint(prog.post)}"
   }
   
   // Run examples
