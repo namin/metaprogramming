@@ -12,6 +12,7 @@ Currently being updated for 2025
 
  - [Lecture 1-lisp](lectures/1-lisp) shows a metacircular interpreter that can evaluate itself, and also an extension towards a reflective tower.
  - [Lecture 2-proof-by-reflection](lectures/2-proof-by-reflection) revisits the reflection principle with an example from the seminal FOL to Lean.
+ - [Lecture 5-smt](lectures/5-smt) shows how to use SMT as a backend, by presenting a small verifier from IMP to SMT via verification conditions.
 
 ## Course Links for Original Edition
 
