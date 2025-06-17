@@ -1,6 +1,6 @@
 # Using SMT in a backend
 
-[imp2vc2smt](imp2vc2smt.scala) prsents minimal Hoare logic verifier for a simple imperative language (IMP) that generates verification conditions and outputs them in SMT-LIB format.
+[imp2vc2smt](imp2vc2smt.scala) presents minimal Hoare logic verifier for a simple imperative language (IMP) that generates verification conditions and outputs them in SMT-LIB format.
 
 ## Language (IMP)
 
@@ -122,5 +122,5 @@ The verifier outputs:
 ## Key Concepts Demonstrated
 
 - **Compositional verification** - Each construct has a clear WP rule
-- **Loop invariants** - Required for while loops; become the WP
-- **SMT integration** - VCs translated to SMT-LIB for automated solving
+- **Loop invariants** - Required for while loops; become the WP and generate VCs
+- **SMT integration** - VCs translated to SMT-LIB for automated solving (logical validity checking)
