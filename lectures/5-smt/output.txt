@@ -19,6 +19,13 @@ SMT-LIB script:
 ; VC 1
 (assert (not (=> true (and (=> (< x y) (and (or (= y x) (= y y)) (and (<= x y) (<= y y)))) (=> (not (< x y)) (and (or (= x x) (= x y)) (and (<= x x) (<= y x))))))))
 (check-sat)
+(get-model)
+
+Z3 Verification:
+----------------------------------------
+✓ VC1: VALID
+
+✓ Max: VERIFICATION SUCCESSFUL
 
 === Verifying Counter ===
 
@@ -38,10 +45,17 @@ SMT-LIB script:
 ; VC 1
 (assert (not (=> (= x 0) (= (+ (+ x 1) 1) 2))))
 (check-sat)
+(get-model)
+
+Z3 Verification:
+----------------------------------------
+✓ VC1: VALID
+
+✓ Counter: VERIFICATION SUCCESSFUL
 
 === Verifying Loop ===
 
-Precondition:  (i = 0 && s = 0)
+Precondition:  ((i = 0 && s = 0) && 0 <= n)
 Program:
 while (i < n)
   inv: (0 <= i && i <= n)
@@ -52,7 +66,7 @@ Postcondition: i = n
 
 Generated 3 verification conditions
 
-VC 1: ((i = 0 && s = 0) => (0 <= i && i <= n))
+VC 1: (((i = 0 && s = 0) && 0 <= n) => (0 <= i && i <= n))
 
 VC 2: (((0 <= i && i <= n) && i < n) => (0 <= i + 1 && i + 1 <= n))
 
@@ -64,9 +78,50 @@ SMT-LIB script:
 (declare-fun n () Int)
 (declare-fun s () Int)
 ; VC 1
-(assert (not (=> (and (= i 0) (= s 0)) (and (<= 0 i) (<= i n)))))
+(assert (not (=> (and (and (= i 0) (= s 0)) (<= 0 n)) (and (<= 0 i) (<= i n))))
 ; VC 2
 (assert (not (=> (and (and (<= 0 i) (<= i n)) (< i n)) (and (<= 0 (+ i 1)) (<= (+ i 1) n)))))
 ; VC 3
 (assert (not (=> (and (and (<= 0 i) (<= i n)) (not (< i n))) (= i n))))
 (check-sat)
+(get-model)
+
+Z3 Verification:
+----------------------------------------
+✓ VC1: VALID
+✓ VC2: VALID
+✓ VC3: VALID
+
+✓ Loop: VERIFICATION SUCCESSFUL
+
+=== Verifying MaxBogus ===
+
+Precondition:  true
+Program:
+if (x < y) then
+  m := y
+else
+  m := x
+Postcondition: m = x
+
+Generated 1 verification conditions
+
+VC 1: (true => ((x < y => y = x) && (!x < y => x = x)))
+
+SMT-LIB script:
+(set-logic QF_NIA)
+(declare-fun x () Int)
+(declare-fun y () Int)
+; VC 1
+(assert (not (=> true (and (=> (< x y) (= y x)) (=> (not (< x y)) (= x x))))))
+(check-sat)
+(get-model)
+
+Z3 Verification:
+----------------------------------------
+✗ VC1: INVALID
+  Failed to prove: (true => ((x < y => y = x) && (!x < y => x = x)))
+  Counterexample:
+    y = 0
+
+✗ MaxBogus: VERIFICATION FAILED (1 invalid VC(s))

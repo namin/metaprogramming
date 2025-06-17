@@ -1,5 +1,8 @@
 // IMP verifier, from IMP to Verification Conditions to SMT-LIB
 
+import java.io._
+import scala.sys.process._
+
 // AST definitions
 sealed trait AExpr
 case class Num(n: Int) extends AExpr
@@ -135,7 +138,65 @@ object SMTLib {
     s"""(set-logic QF_NIA)
        |$declarations
        |$assertions
+       |(check-sat)
+       |(get-model)""".stripMargin
+  }
+}
+
+// Z3 integration
+object Z3Runner {
+  def checkSat(smtScript: String): (Boolean, String) = {
+    val tempFile = File.createTempFile("imp_vc_", ".smt2")
+    try {
+      val writer = new PrintWriter(tempFile)
+      writer.write(smtScript)
+      writer.close()
+      
+      val result = Process(scala.Seq("z3", tempFile.getAbsolutePath)).!!
+      val lines = result.trim.split("\n")
+      
+      val isSat = lines.headOption.contains("sat")
+      (isSat, result)
+    } finally {
+      tempFile.delete()
+    }
+  }
+  
+  def parseModel(output: String): Map[String, Int] = {
+    val modelPattern = "\\(define-fun\\s+(\\w+)\\s+\\(\\)\\s+Int\\s+(-?\\d+)\\)".r
+    modelPattern.findAllMatchIn(output).map { m =>
+      m.group(1) -> m.group(2).toInt
+    }.toMap
+  }
+  
+  def verifyVC(vc: BExpr, vars: Set[String]): (Boolean, String) = {
+    val smtScript = checkVC(vc, vars)
+    val (isSat, output) = checkSat(smtScript)
+    (!isSat, output) // VC is valid if negation is UNSAT
+  }
+  
+  def checkVC(vc: BExpr, vars: Set[String]): String = {
+    val declarations = vars.toList.sorted.map(v => s"(declare-fun $v () Int)").mkString("\n")
+    
+    s"""(set-logic QF_NIA)
+       |$declarations
+       |(assert (not ${SMTLib.toSMT(vc)}))
        |(check-sat)""".stripMargin
+  }
+  
+  def verifyAll(vcs: List[BExpr]): List[(BExpr, Boolean, String, Option[Map[String, Int]])] = {
+    val vars = vcs.flatMap(SMTLib.freeVars).toSet
+    vcs.map { vc =>
+      val (isValid, output) = verifyVC(vc, vars)
+      val model = if (!isValid && output.contains("sat")) {
+        // Get model by running a separate query
+        val modelScript = s"""${checkVC(vc, vars)}
+                             |(get-model)""".stripMargin
+        val (_, modelOutput) = checkSat(modelScript)
+        Some(parseModel(modelOutput))
+      } else None
+      (vc, isValid, output, model)
+    }
   }
 }
 
@@ -164,7 +225,7 @@ object Main extends App {
   
   // Example 3: Loop with invariant
   val loopProgram = Program(
-    And(Eq(Var("i"), Num(0)), Eq(Var("s"), Num(0))),
+    And(And(Eq(Var("i"), Num(0)), Eq(Var("s"), Num(0))), Leq(Num(0), Var("n"))),
     While(
       Lt(Var("i"), Var("n")),
       And(Leq(Num(0), Var("i")), Leq(Var("i"), Var("n"))), // invariant
@@ -175,6 +236,15 @@ object Main extends App {
     ),
     Eq(Var("i"), Var("n"))
   )
+
+  // Example 1b: Max of two numbers (bad postcondition)
+  val maxProgramBogus = Program(
+    True,
+    If(Lt(Var("x"), Var("y")),
+      Assign("m", Var("y")),
+      Assign("m", Var("x"))),
+    Eq(Var("m"), Var("x"))
+  )
   
   def verifyProgram(name: String, prog: Program): Unit = {
     println(s"\n=== Verifying $name ===")
@@ -184,7 +254,48 @@ object Main extends App {
     vcs.zipWithIndex.foreach { case (vc, i) =>
       println(s"\nVC ${i+1}: ${prettyPrint(vc)}")
     }
+    
     println(s"\nSMT-LIB script:\n${SMTLib.generateScript(vcs)}")
+    
+    // Run Z3 verification
+    println(s"\nZ3 Verification:")
+    println("-" * 40)
+    
+    try {
+      val results = Z3Runner.verifyAll(vcs)
+      var failureCount = 0
+      
+      results.zipWithIndex.foreach { case ((vc, isValid, output, model), i) =>
+        if (isValid) {
+          println(s"✓ VC${i+1}: VALID")
+        } else {
+          failureCount += 1
+          println(s"✗ VC${i+1}: INVALID")
+          println(s"  Failed to prove: ${prettyPrint(vc)}")
+          
+          model.foreach { m =>
+            if (m.nonEmpty) {
+              println("  Counterexample:")
+              m.toList.sortBy(_._1).foreach { case (var_, value) =>
+                println(s"    $var_ = $value")
+              }
+            }
+          }
+        }
+      }
+      
+      println()
+      if (failureCount == 0) {
+        println(s"✓ $name: VERIFICATION SUCCESSFUL")
+      } else {
+        println(s"✗ $name: VERIFICATION FAILED ($failureCount invalid VC(s))")
+      }
+      
+    } catch {
+      case e: Exception =>
+        println(s"❌ Error running Z3: ${e.getMessage}")
+        println("Make sure Z3 is installed and in your PATH")
+    }
   }
   
   def prettyPrint(b: BExpr): String = b match {
@@ -230,4 +341,5 @@ object Main extends App {
   verifyProgram("Max", maxProgram)
   verifyProgram("Counter", counterProgram)
   verifyProgram("Loop", loopProgram)
+  verifyProgram("MaxBogus", maxProgramBogus)
 }
