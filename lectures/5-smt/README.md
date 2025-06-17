@@ -75,7 +75,7 @@ This will verify three example programs:
 2. Simple counter
 3. Loop with invariant
 
-## Output
+## [Output](output.txt)
 
 The verifier outputs:
 1. Number of VCs generated
