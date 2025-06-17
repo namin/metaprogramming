@@ -51,7 +51,7 @@ object Verifier {
     case Implies(b1, b2) => Implies(substitute(b1, x, a), substitute(b2, x, a))
   }
   
-  // Combined wp and vcgen - returns (weakest precondition, verification conditions)
+  // Combined wp and vcgen -- returns (weakest precondition, verification conditions)
   def wpVc(s: Stmt, q: BExpr): (BExpr, List[BExpr]) = s match {
     case Skip => 
       (q, Nil)
