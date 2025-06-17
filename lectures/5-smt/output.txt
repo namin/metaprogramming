@@ -1,4 +1,13 @@
 === Verifying Max ===
+
+Precondition:  true
+Program:
+if (x < y) then
+  m := y
+else
+  m := x
+Postcondition: ((m = x || m = y) && (x <= m && y <= m))
+
 Generated 1 verification conditions
 
 VC 1: (true => ((x < y => ((y = x || y = y) && (x <= y && y <= y))) && (!x < y => ((x = x || x = y) && (x <= x && y <= x)))))
@@ -12,6 +21,13 @@ SMT-LIB script:
 (check-sat)
 
 === Verifying Counter ===
+
+Precondition:  x = 0
+Program:
+x := x + 1;
+x := x + 1
+Postcondition: x = 2
+
 Generated 1 verification conditions
 
 VC 1: (x = 0 => x + 1 + 1 = 2)
@@ -24,6 +40,16 @@ SMT-LIB script:
 (check-sat)
 
 === Verifying Loop ===
+
+Precondition:  (i = 0 && s = 0)
+Program:
+while (i < n)
+  inv: (0 <= i && i <= n)
+do
+  s := s + i;
+  i := i + 1
+Postcondition: i = n
+
 Generated 3 verification conditions
 
 VC 1: ((i = 0 && s = 0) => (0 <= i && i <= n))
