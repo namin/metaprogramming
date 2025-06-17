@@ -1,6 +1,6 @@
 # Using SMT in a backend
 
-[imp2vc2smt](imp2vc2smt.scala) presents minimal Hoare logic verifier for a simple imperative language (IMP) that generates verification conditions and outputs them in SMT-LIB format.
+[imp2vc2smt](imp2vc2smt.scala) presents minimal Hoare logic verifier for a simple imperative language (IMP) that generates verification conditions, outputs them in SMT-LIB format, and runs Z3 for checking.
 
 ## Language (IMP)
 
@@ -111,6 +111,7 @@ This will verify three example programs:
 1. Maximum of two numbers
 2. Simple counter
 3. Loop with invariant
+4. Maximum of two numbers with bogus postcondition
 
 ## [Output](output.txt)
 
