@@ -2,8 +2,8 @@
 
 [imp2vc2smt.scala](imp2vc2smt.scala) is explaned below, and shows how SMT can be used for _verification_.
 SMT can also be used for synthesis.
-Synthesis for values is shown by the project Holey.
-Left as an exercise, synthesis for expressions could be integrated with [imp2vc2smt.scala] by enumerating shapes of expressions (for example, linear combinations for an arithmetic expression), constraining and discharging to SMT for solving.
+The project [Holey](https://github.com/namin/holey) shows synthesis for values. Holey combines staged execution of symbolic expressions with SMT to solve Python programming puzzles.
+Left as an exercise, synthesis for expressions could be integrated with [imp2vc2smt.scala](imp2vc2smt.scala) by enumerating shapes of expressions (for example, linear combinations for an arithmetic expression), constraining and discharging to SMT for solving.
 
 # IMP to Verification Conditions to SMT
 
