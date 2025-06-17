@@ -50,19 +50,56 @@ To verify a Hoare triple `{P} S {Q}`:
 
 ## Example: Finding Maximum
 
-```scala
-// Program: if (x < y) then m := y else m := x
-// Post: m = max(x, y)
+This example demonstrates how the verifier works on a simple conditional program:
 
-val maxProgram = If(Lt(Var("x"), Var("y")),
-                   Assign("m", Var("y")),
-                   Assign("m", Var("x")))
-
-val maxPost = And(Or(Eq(Var("m"), Var("x")), Eq(Var("m"), Var("y"))),
-                  And(Leq(Var("x"), Var("m")), Leq(Var("y"), Var("m"))))
-
-// Generates 1 VC: true => ((x < y => post[y/m]) && (!(x < y) => post[x/m]))
+**Program**: 
 ```
+if (x < y) then
+  m := y
+else
+  m := x
+```
+
+**Specification**: 
+- Precondition: `true` (no assumptions about inputs)
+- Postcondition: `((m = x || m = y) && (x <= m && y <= m))` 
+  - This captures that `m` is the maximum: it equals one of the inputs and is ≥ both
+
+**Verification Process**:
+
+1. **Weakest Precondition Computation**: Starting from the postcondition `Q = ((m = x || m = y) && (x <= m && y <= m))`, we compute `wp(S, Q)`:
+
+   - **Then branch** `wp(m := y, Q)`: Substitute `y` for `m` in `Q`
+     ```
+     ((y = x || y = y) && (x <= y && y <= y))
+     ```
+   
+   - **Else branch** `wp(m := x, Q)`: Substitute `x` for `m` in `Q`  
+     ```
+     ((x = x || x = y) && (x <= x && y <= x))
+     ```
+   
+   - **If statement** `wp(if (x < y) then ... else ..., Q)`: 
+     ```
+     (x < y => wp_then) && (!(x < y) => wp_else)
+     = ((x < y => ((y = x || y = y) && (x <= y && y <= y))) && 
+        (!(x < y) => ((x = x || x = y) && (x <= x && y <= x))))
+     ```
+
+2. **From WP to VC**: The **key insight** is that a Hoare triple `{P} S {Q}` is valid iff `P => wp(S, Q)` is a tautology. 
+
+   - Our precondition is `P = true`
+   - Our computed weakest precondition is the complex formula above
+   - The **verification condition** is therefore: `true => wp(S, Q)`
+
+3. **Why This Works**: 
+   - The **WP answers**: "What must be true beforehand to guarantee the postcondition?"
+   - The **VC checks**: "Does our actual precondition imply what must be true?"
+   - Since `true => X` is valid iff `X` is always true, we're asking: "Is the WP always satisfied?"
+
+4. **VC Interpretation**: The verification condition says "for any x,y, if we execute the program (taking the then-branch when x < y and else-branch otherwise), the postcondition will hold". The substitutions make explicit what happens in each execution path.
+
+The SMT solver can verify this VC is valid, proving the program correctly computes the maximum.
 
 ## Running
 
