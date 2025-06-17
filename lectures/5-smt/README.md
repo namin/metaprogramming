@@ -1,6 +1,13 @@
 # Using SMT in a backend
 
-[imp2vc2smt](imp2vc2smt.scala) presents minimal Hoare logic verifier for a simple imperative language (IMP) that generates verification conditions, outputs them in SMT-LIB format, and runs Z3 for checking.
+[imp2vc2smt.scala](imp2vc2smt.scala) is explaned below, and shows how SMT can be used for _verification_.
+SMT can also be used for synthesis.
+Synthesis for values is shown by the project Holey.
+Left as an exercise, synthesis for expressions could be integrated with [imp2vc2smt.scala] by enumerating shapes of expressions (for example, linear combinations for an arithmetic expression), constraining and discharging to SMT for solving.
+
+# IMP to Verification Conditions to SMT
+
+[imp2vc2smt.scala](imp2vc2smt.scala) presents minimal Hoare logic verifier for a simple imperative language (IMP) that generates verification conditions, outputs them in SMT-LIB format, and runs Z3 for checking.
 
 ## Language (IMP)
 
