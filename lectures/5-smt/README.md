@@ -1,7 +1,7 @@
 # Using SMT in a backend
 
 [imp2vc2smt.scala](imp2vc2smt.scala) is explaned below, and shows how SMT can be used for _verification_.
-SMT can also be used for synthesis.
+SMT can also be used for _synthesis_.
 The project [Holey](https://github.com/namin/holey) shows synthesis for values. Holey combines staged execution of symbolic expressions with SMT to solve Python programming puzzles.
 Left as an exercise, synthesis for expressions could be integrated with [imp2vc2smt.scala](imp2vc2smt.scala) by enumerating shapes of expressions (for example, linear combinations for an arithmetic expression), constraining and discharging to SMT for solving.
 See also this [tutorial blog post on synthesis with SMT](https://github.com/sampsyo/minisynth).
