@@ -1,39 +1,42 @@
 #include <limits.h>
 #include <string.h>
-/*@ predicate submatcher_0(char  * x22) = ((x22[0]=='\0') || (((x22[0]=='\0')) ? (\false) : (((x22[0]=='a') &&
-submatcher_0((x22+1))))));*/
+#include <string.h>
+/*@ predicate submatcher_0(char  * x19) = ((x19[0]=='\0') || (!(x19[0]=='\0') &&
+((x19[0]=='a') &&
+submatcher_0((x19+1)))));*/
 /*@
-requires ((strlen(x22)>=0) &&
-\valid(x22+(0..(strlen(x22)+1)-1)));
+requires ((strlen(x19)>=0) &&
+\valid(x19+(0..strlen(x19))));
 assigns \nothing;
-ensures \result <==> submatcher_0(x22);
+ensures \result <==> submatcher_0(x19);
 */
-int submatcher_0(char  * x22) {
-  char x24 = x22[0];
-  int x25 = x24 == '\0';
-  int x32;
-  if (x25) {
-    x32 = 0/*false*/;
+int submatcher_0(char  * x19) {
+  char x21 = x19[0];
+  int x22 = x21 == '\0';
+  int x29;
+  if (x22) {
+    x29 = 0/*false*/;
   } else {
-    int x26 = x24 == 'a';
-    int x30;
-    if (x26) {
-      char  *x27 = x22+1;
-      int x28 = submatcher_0(x27);
-      x30 = x28;
+    int x23 = x21 == 'a';
+    int x27;
+    if (x23) {
+      char  *x24 = x19+1;
+      int x25 = submatcher_0(x24);
+      x27 = x25;
     } else {
-      x30 = 0/*false*/;
+      x27 = 0/*false*/;
     }
-    x32 = x30;
+    x29 = x27;
   }
-  int x33 = x25 || x32;
-  return x33;
+  int x30 = x22 || x29;
+  return x30;
 }
-/*@ predicate matcher_star_a(char  * x0) = ((x0[0]=='\0') || (((x0[0]=='\0')) ? (\false) : (((x0[0]=='a') &&
-submatcher_0((x0+1))))));*/
+/*@ predicate matcher_star_a(char  * x0) = ((x0[0]=='\0') || (!(x0[0]=='\0') &&
+((x0[0]=='a') &&
+submatcher_0((x0+1)))));*/
 /*@
 requires ((strlen(x0)>=0) &&
-\valid(x0+(0..(strlen(x0)+1)-1)));
+\valid(x0+(0..strlen(x0))));
 assigns \nothing;
 ensures \result <==> matcher_star_a(x0);
 */

@@ -1,73 +1,80 @@
 #include <limits.h>
 #include <string.h>
-/*@ predicate submatcher_0(char  * x33) = ((x33[0]=='\0') || ((((x33[0]=='\0')) ? (\false) : (((x33[0]=='a') &&
-\false))) || (((x33[0]=='\0')) ? (\false) : (((x33[0]=='a') &&
-((((x33+1)[0]=='\0')) ? (\false) : ((((x33+1)[0]=='b') &&
-submatcher_0(((x33+1)+1))))))))));*/
+#include <string.h>
+/*@ predicate submatcher_0(char  * x30) = ((x30[0]=='\0') || ((!(x30[0]=='\0') &&
+((x30[0]=='a') &&
+\false)) || (!(x30[0]=='\0') &&
+((x30[0]=='a') &&
+(!((x30+1)[0]=='\0') &&
+(((x30+1)[0]=='b') &&
+submatcher_0(((x30+1)+1))))))));*/
 /*@
-requires ((strlen(x33)>=0) &&
-\valid(x33+(0..(strlen(x33)+1)-1)));
+requires ((strlen(x30)>=0) &&
+\valid(x30+(0..strlen(x30))));
 assigns \nothing;
-ensures \result <==> submatcher_0(x33);
+ensures \result <==> submatcher_0(x30);
 */
-int submatcher_0(char  * x33) {
-  char x35 = x33[0];
-  int x36 = x35 == '\0';
-  int x53;
-  if (x36) {
-    x53 = 0/*false*/;
+int submatcher_0(char  * x30) {
+  char x32 = x30[0];
+  int x33 = x32 == '\0';
+  int x50;
+  if (x33) {
+    x50 = 0/*false*/;
   } else {
-    int x37 = x35 == 'a';
-    int x51;
-    if (x37) {
-      char  *x38 = x33+1;
-      char x41 = x38[0];
-      int x42 = x41 == '\0';
-      int x49;
-      if (x42) {
-        x49 = 0/*false*/;
+    int x34 = x32 == 'a';
+    int x48;
+    if (x34) {
+      char  *x35 = x30+1;
+      char x38 = x35[0];
+      int x39 = x38 == '\0';
+      int x46;
+      if (x39) {
+        x46 = 0/*false*/;
       } else {
-        int x43 = x41 == 'b';
-        int x47;
-        if (x43) {
-          char  *x44 = x38+1;
-          int x45 = submatcher_0(x44);
-          x47 = x45;
+        int x40 = x38 == 'b';
+        int x44;
+        if (x40) {
+          char  *x41 = x35+1;
+          int x42 = submatcher_0(x41);
+          x44 = x42;
         } else {
-          x47 = 0/*false*/;
+          x44 = 0/*false*/;
         }
-        x49 = x47;
+        x46 = x44;
       }
-      x51 = x49;
+      x48 = x46;
     } else {
-      x51 = 0/*false*/;
+      x48 = 0/*false*/;
     }
-    x53 = x51;
+    x50 = x48;
   }
-  int x40;
-  if (x36) {
-    x40 = 0/*false*/;
+  int x37;
+  if (x33) {
+    x37 = 0/*false*/;
   } else {
-    int x37 = x35 == 'a';
-    int x39;
-    if (x37) {
-      x39 = 0/*false*/;
+    int x34 = x32 == 'a';
+    int x36;
+    if (x34) {
+      x36 = 0/*false*/;
     } else {
-      x39 = 0/*false*/;
+      x36 = 0/*false*/;
     }
-    x40 = x39;
+    x37 = x36;
   }
-  int x54 = x40 || x53;
-  int x55 = x36 || x54;
-  return x55;
+  int x51 = x37 || x50;
+  int x52 = x33 || x51;
+  return x52;
 }
-/*@ predicate matcher_star_ab(char  * x0) = ((x0[0]=='\0') || ((((x0[0]=='\0')) ? (\false) : (((x0[0]=='a') &&
-\false))) || (((x0[0]=='\0')) ? (\false) : (((x0[0]=='a') &&
-((((x0+1)[0]=='\0')) ? (\false) : ((((x0+1)[0]=='b') &&
-submatcher_0(((x0+1)+1))))))))));*/
+/*@ predicate matcher_star_ab(char  * x0) = ((x0[0]=='\0') || ((!(x0[0]=='\0') &&
+((x0[0]=='a') &&
+\false)) || (!(x0[0]=='\0') &&
+((x0[0]=='a') &&
+(!((x0+1)[0]=='\0') &&
+(((x0+1)[0]=='b') &&
+submatcher_0(((x0+1)+1))))))));*/
 /*@
 requires ((strlen(x0)>=0) &&
-\valid(x0+(0..(strlen(x0)+1)-1)));
+\valid(x0+(0..strlen(x0))));
 assigns \nothing;
 ensures \result <==> matcher_star_ab(x0);
 */
