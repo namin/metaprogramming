@@ -1,49 +1,98 @@
-comment | Sound even reflection - only allows true facts |
+fetch ../tst/prolegomena/appa.tst;
 
-comment | Object level |
-declare indconst zro [NATNUM];
-declare funconst suc (NATNUM) = NATNUM;
-declare predconst Even 1;
+comment | True computational proof by reflection for even numbers - following sec91.tst pattern |
+declare predconst even 1;
+axiom EVEN0: even(zro);
+axiom EVEN: forall n.(even(suc(suc(n))) iff even(n));
 
-comment | Mix of true and false claims |
-axiom FACT_EVEN0: Even(zro);              comment | TRUE |
-axiom FACT_EVEN1: Even(suc(zro));         comment | FALSE |
-axiom FACT_EVEN2: Even(suc(suc(zro)));    comment | TRUE |
+comment | Attach computational semantics |
+deflam evenp(x) (= (MOD x 2) 0);
+attach even to [NATNUM] evenp;
 
-comment | Meta level |
-namecontext OBJ;
+comment | Test facts |
+axiom CLAIM_EVEN0: even(zro);                           comment | 0 is even - TRUE |
+axiom CLAIM_EVEN2: even(suc(suc(zro)));                 comment | 2 is even - TRUE |
+axiom CLAIM_EVEN4: even(suc(suc(suc(suc(zro)))));       comment | 4 is even - TRUE |
+axiom CLAIM_EVEN1: even(suc(zro));                      comment | 1 is even - FALSE |
+
+comment | Meta level setup |
+NAMECONTEXT OBJ;
 MAKECONTEXT META;
 SWITCHCONTEXT META;
 
 DECLARE PREDCONST THEOREM 1;
-DECLARE SORT WFF FACT;
-DECREP WFF FACT;
+DECLARE SORT WFF FACT TERM PREDSYM FUNSYM;
+DECREP WFF FACT TERM PREDSYM FUNSYM;
 REPRESENT {WFF} AS WFF;
 REPRESENT {FACT} AS FACT;
+REPRESENT {TERM} AS TERM;
+REPRESENT {PREDSYM} AS PREDSYM;
+REPRESENT {FUNSYM} AS FUNSYM;
 
 DECLARE FUNCONST wffof (FACT)=WFF;
 ATTACH wffof TO [FACT=WFF] fact\-get\-wff;
 
-comment | Check if a fact is one we accept as true |
-comment | For now, hardcode which facts are valid |
-DECLARE PREDCONST ISVALID 1;
-DEFLAM isvalid (f) (OR (EQUAL (fact\-get\-label f) (QUOTE FACT1)) (EQUAL (fact\-get\-label f) (QUOTE FACT3)));
-ATTACH ISVALID TO [FACT] isvalid;
+comment | Following sec91 pattern exactly - declare mainpred |
+DECLARE FUNCONST mainpred (WFF)=PREDSYM;
+DECLARE INDCONST evenPRED [PREDSYM];
+MATTACH evenPRED dar [PREDSYM] OBJ::PREDCONST:even;
+DEFLAM mainpred (X) (AND (PREDAPPL X) (predappl\-get\-pred X));
+ATTACH mainpred to [WFF=PREDSYM] mainpred;
 
-comment | Only valid facts become theorems |
-DECLARE indvar f [FACT];
-AXIOM CHECKTHM: forall f.(ISVALID(f) imp THEOREM(wffof(f)));
+comment | Following sec91 pattern - numeral checking |
+DECLARE PREDCONST NUMERAL 1;
+DECLARE PREDCONST numeral 3;
+DECLARE INDCONST zro [TERM];
+DECLARE INDCONST suc [FUNSYM];
+MATTACH zro dar [TERM] OBJ::INDCONST:zro;
+MATTACH suc dar [FUNSYM] OBJ::FUNCONST:suc;
+DEFLAM numeral (X zro suc) (OR (EQ X zro) (AND (FUNAPPL X) (EQ (funappl\-get\-fun X) suc) (numeral (funappl1\-get\-arg X) zro suc)));
+ATTACH numeral TO [TERM,TERM,FUNSYM] numeral;
+DECLARE indvar x [TERM];
+AXIOM AX_NUMERAL: forall x.(NUMERAL(x) iff numeral(x,zro,suc));
+
+comment | Following sec91 pattern - mknum function |
+KNOW natnums;
+declare indvar n [NATNUMSORT];
+DECLARE FUNCONST mknum (TERM)=NATNUMSORT;
+DEFLAM mknum (X) (IF (FUNAPPL X) (ADD1 (mknum (funappl1\-get\-arg X))) 0);
+ATTACH mknum TO [TERM=NATNUMREP] mknum;
+
+comment | Define EVENCLAIM following LINEAREQ pattern |
+DECLARE PREDCONST EVENCLAIM 1;
+DECLARE FUNCONST arg (WFF)=TERM;
+ATTACH arg TO [WFF=TERM] predappl1\-get\-arg;
+
+DECLARE indvar w [WFF];
+AXIOM AX_EVENCLAIM: forall w.(EVENCLAIM(w) iff (
+  mainpred(w)=evenPRED and NUMERAL(arg(w))));
+
+comment | The computational even checker |
+DECLARE PREDCONST COMPUTEEVEN 1;
+DEFLAM computeeven (t) (= (MOD (mknum t) 2) 0);
+ATTACH COMPUTEEVEN TO [TERM] computeeven;
+
+comment | Reflection principle following SOLVE pattern |
+DECLARE indvar vl [FACT];
+AXIOM EVENREFLECT: forall vl.(EVENCLAIM(wffof(vl)) and COMPUTEEVEN(arg(wffof(vl))) imp THEOREM(wffof(vl)));
+
+comment | Set up simplification like sec91 |
+SETBASICSIMP meta\-axioms at facts {AX_EVENCLAIM,AX_NUMERAL};
+SETCOMPSIMP EVALSS AT LOGICTREE uni meta\-axioms;
 
 SWITCHCONTEXT OBJ;
 
-comment | These should work |
-reflect CHECKTHM FACT_EVEN0;
-theorem EVEN0 1;
+comment | Test computational reflection |
+reflect EVENREFLECT CLAIM_EVEN0;
+theorem THM_EVEN0 1;
 
-reflect CHECKTHM FACT_EVEN2;
-theorem EVEN2 2;
+reflect EVENREFLECT CLAIM_EVEN2;
+theorem THM_EVEN2 2;
 
-comment | This should fail - uncomment to test |
-comment | reflect CHECKTHM FACT_EVEN1; |
+reflect EVENREFLECT CLAIM_EVEN4;
+theorem THM_EVEN4 3;
+
+comment | This should fail |
+comment | reflect EVENREFLECT CLAIM_EVEN1; |
 
 show axiom;
