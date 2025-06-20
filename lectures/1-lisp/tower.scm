@@ -11,6 +11,15 @@
           (cdr b)
           (error 'env-lookup (format "unbound variable ~a" x))))))
 
+(define env-set!
+  (lambda (env x v)
+    (let ((b (find-binding env x)))
+      (if b
+          (begin
+            (set-cdr! b v)
+            'undefined)
+          (error 'env-set! (format "unbound variable ~a" x))))))
+
 (define make-frame
   (lambda (params args)
     (if (null? params)
@@ -221,6 +230,7 @@
            (cond
            ((= n 0) (cont e meta-cont))
            ((= n 1) (cont (env-lookup e (car args)) meta-cont))
+           ((= n 2) (cont (env-set! e (car args) (cadr args)) meta-cont))
            (else (error 'app "environment expects 0 or 1 args"))))))
 
       (((tagged? 'continuation) p)
