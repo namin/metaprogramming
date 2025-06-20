@@ -1,8 +1,20 @@
-(define (continuation-of k)
-  (if ((tagged? 'continuation) k)
-      (cadr k)
-      (lambda (v mc)
-        (app k (list v) '() (lambda (x) x) mc))))
+(define tagged?
+  (lambda (t)
+    (lambda (e)
+      (and (pair? e) (eq? t (car e))))))
+
+(define environment-of
+  (lambda (e)
+    (if ((tagged? 'environment) e)
+        (cadr e)
+        e)))
+
+(define continuation-of
+  (lambda (k)
+    (if ((tagged? 'continuation) k)
+        (cadr k)
+        (lambda (v mc)
+          (app k (list v) '() (lambda (x) x) mc)))))
 
 (define body-of
   (lambda (xs)
@@ -46,11 +58,6 @@
 (define env-extend
   (lambda (env params args)
     (cons (make-frame params args) env)))
-
-(define tagged?
-  (lambda (t)
-    (lambda (e)
-      (and (pair? e) (eq? t (car e))))))
 
 (define make-meta-cont-level
   (lambda (level)
@@ -165,7 +172,9 @@
                    (lambda (r mc)
                      (evl (cadddr exp) env
                           (lambda (k mc)
-                            (evl e (cadr r) (continuation-of k)
+                            (evl e
+                                 (environment-of r)
+                                 (continuation-of k)
                                  (cons (cons env cont) mc)))
                           mc))
                    mc))
