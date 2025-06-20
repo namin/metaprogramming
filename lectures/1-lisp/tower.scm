@@ -1,3 +1,9 @@
+(define (continuation-of k)
+  (if ((tagged? 'continuation) k)
+      (cadr k)
+      (lambda (v mc)
+        (app k (list v) '() (lambda (x) x) mc))))
+
 (define body-of
   (lambda (xs)
     (if (null? (cdr xs))
@@ -159,7 +165,7 @@
                    (lambda (r mc)
                      (evl (cadddr exp) env
                           (lambda (k mc)
-                            (evl e (cadr r) (cadr k)
+                            (evl e (cadr r) (continuation-of k)
                                  (cons (cons env cont) mc)))
                           mc))
                    mc))
