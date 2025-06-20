@@ -1,3 +1,14 @@
+(define tagged?
+  (lambda (t)
+    (lambda (e)
+      (and (pair? e) (eq? t (car e))))))
+
+(define body-of
+  (lambda (xs)
+    (if (null? (cdr xs))
+        (car xs)
+        (cons 'begin xs))))
+
 (define find-binding
   (lambda (env x)
     (if (null? env)
@@ -26,11 +37,6 @@
   (lambda (env params args)
     (cons (make-frame params args) env)))
 
-(define tagged?
-  (lambda (t)
-    (lambda (e)
-      (and (pair? e) (eq? t (car e))))))
-
 (define evl
   (lambda (exp env)
     (cond
@@ -49,7 +55,7 @@
       (((tagged? 'let) exp)
        (let ((params (map car (cadr exp)))
              (args (map cadr (cadr exp)))
-             (body (cons 'begin (cddr exp))))
+             (body (body-of (cddr exp))))
          (let ((t (cons (list 'lambda params body) args)))
            (evl t env))))
       (((tagged? 'define) exp)
@@ -89,11 +95,10 @@
            (let ((clause (cadr exp))
                  (rest (cddr exp)))
              (if (or (eq? 'else (car clause)) (evl (car clause) env))
-                 (evl (cadr clause) env)
+                 (evl (body-of (cdr clause)) env)
                  (evl (cons 'cond rest) env)))))
       (((tagged? 'lambda) exp)
-       (list 'closure env (cadr exp)
-             (if (null? (cdddr exp)) (caddr exp) (cons 'begin (cddr exp)))))
+       (list 'closure env (cadr exp) (body-of (cddr exp))))
       (((tagged? 'load) exp)
        (file-load env (evl (cadr exp) env)))
       (else ;; application
@@ -162,6 +167,7 @@
      (cons 'write write)
      (cons 'print-graph print-graph)
      (cons 'assq assq)
+     (cons 'assoc assoc)
      (cons 'procedure? procedure?)
      (cons 'set-car! set-car!)
      (cons 'set-cdr! set-cdr!)
