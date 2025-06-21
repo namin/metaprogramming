@@ -25,7 +25,7 @@ See also this [tutorial blog post on synthesis with SMT](https://github.com/samp
 
 ## Core Algorithm
 
-The verifier computes weakest preconditions and generates verification conditions in one pass:
+The verifier computes weakest preconditions (WPs) and generates verification conditions (VCs) in one pass:
 
 ```scala
 def wpVc(s: Stmt, q: BExpr): (BExpr, List[BExpr]) = s match {
