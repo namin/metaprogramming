@@ -1,10 +1,46 @@
 diff --git a/evl.scm b/tower.scm
-index 8e0d87b..6f76cb1 100644
+index aa0af18..7ff8888 100644
 --- a/evl.scm
 +++ b/tower.scm
-@@ -31,103 +31,264 @@
+@@ -3,6 +3,19 @@
      (lambda (e)
        (and (pair? e) (eq? t (car e))))))
+ 
++(define environment-of
++  (lambda (e)
++    (if ((tagged? 'environment) e)
++        (cadr e)
++        e)))
++
++(define continuation-of
++  (lambda (k)
++    (if ((tagged? 'continuation) k)
++        (cadr k)
++        (lambda (v mc)
++          (app k (list v) '() (lambda (x) x) mc)))))
++
+ (define body-of
+   (lambda (xs)
+     (if (null? (cdr xs))
+@@ -22,6 +35,15 @@
+           (cdr b)
+           (error 'env-lookup (format "unbound variable ~a" x))))))
+ 
++(define env-set!
++  (lambda (env x v)
++    (let ((b (find-binding env x)))
++      (if b
++          (begin
++            (set-cdr! b v)
++            'undefined)
++          (error 'env-set! (format "unbound variable ~a" x))))))
++
+ (define make-frame
+   (lambda (params args)
+     (if (null? params)
+@@ -37,102 +59,264 @@
+   (lambda (env params args)
+     (cons (make-frame params args) env)))
  
 +(define make-meta-cont-level
 +  (lambda (level)
@@ -54,7 +90,7 @@ index 8e0d87b..6f76cb1 100644
        (((tagged? 'let) exp)
         (let ((params (map car (cadr exp)))
               (args (map cadr (cadr exp)))
-              (body (cons 'begin (cddr exp))))
+              (body (body-of (cddr exp))))
 -         (let ((t (cons (list 'lambda params body) args)))
 -           (evl t env))))
 +         (evl (cons (list 'lambda params body) args) env cont meta-cont)))
@@ -129,23 +165,19 @@ index 8e0d87b..6f76cb1 100644
             (let ((clause (cadr exp))
                   (rest (cddr exp)))
 -             (if (or (eq? 'else (car clause)) (evl (car clause) env))
--                 (evl (cadr clause) env)
+-                 (evl (body-of (cdr clause)) env)
 -                 (evl (cons 'cond rest) env)))))
 +             (if (eq? 'else (car clause))
 +                 (evl (cadr clause) env cont meta-cont)
 +                 (evl (car clause) env
 +                      (lambda (v mc)
 +                        (if v
-+                            (evl (cadr clause) env cont mc)
++                            (evl (body-of (cdr clause)) env cont mc)
 +                            (evl (cons 'cond rest) env cont mc)))
 +                      meta-cont)))))
        (((tagged? 'lambda) exp)
--       (list 'closure env (cadr exp)
--             (if (null? (cdddr exp)) (caddr exp) (cons 'begin (cddr exp)))))
-+       (cont (list 'closure env (cadr exp)
-+                   (if (null? (cdddr exp))
-+                       (caddr exp)
-+                       (cons 'begin (cddr exp))))
+-       (list 'closure env (cadr exp) (body-of (cddr exp))))
++       (cont (list 'closure env (cadr exp) (body-of (cddr exp)))
 +             meta-cont))
 +
 +      (((tagged? 'delta) exp)
@@ -158,7 +190,9 @@ index 8e0d87b..6f76cb1 100644
 +                   (lambda (r mc)
 +                     (evl (cadddr exp) env
 +                          (lambda (k mc)
-+                            (evl e (cadr r) (cadr k)
++                            (evl e
++                                 (environment-of r)
++                                 (continuation-of k)
 +                                 (cons (cons env cont) mc)))
 +                          mc))
 +                   mc))
@@ -238,6 +272,7 @@ index 8e0d87b..6f76cb1 100644
 +           (cond
 +           ((= n 0) (cont e meta-cont))
 +           ((= n 1) (cont (env-lookup e (car args)) meta-cont))
++           ((= n 2) (cont (env-set! e (car args) (cadr args)) meta-cont))
 +           (else (error 'app "environment expects 0 or 1 args"))))))
 +
 +      (((tagged? 'continuation) p)
@@ -316,7 +351,7 @@ index 8e0d87b..6f76cb1 100644
  
  (define make-global-frame
    (lambda ()
-@@ -154,6 +315,8 @@
+@@ -159,6 +343,8 @@
       (cons 'boolean? boolean?)
       (cons 'string? string?)
       (cons 'symbol? symbol?)
@@ -325,7 +360,7 @@ index 8e0d87b..6f76cb1 100644
       (cons 'apply apply)
       (cons 'error error)
       (cons 'format format)
-@@ -169,43 +332,65 @@
+@@ -175,43 +361,65 @@
       (cons 'display-condition display-condition)
       (cons 'eof-object? eof-object?)
       (cons 'cpu-time cpu-time)
