@@ -1,6 +1,7 @@
 (define foo (lambda (f) (lambda (x) (lambda () (f (+ x 1))))))
 (define thunk ((foo 2) 3))
 (thunk)
+;; Error: Exception in app: expected procedure, not 2
 (old-cont 'ok)
 
 (define inspect
@@ -19,5 +20,9 @@
          (loop))))))
 
 (inspect thunk)
+f
+(set! f (lambda (x) (* 2 x)))
+(exit 0)
 
 (thunk)
+;; ==> 8
