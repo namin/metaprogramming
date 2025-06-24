@@ -163,7 +163,7 @@
              meta-cont))
 
       (((tagged? 'delta) exp)
-       (cont (list 'delta-reifier env (cadr exp) (caddr exp))
+       (cont (list 'delta-reifier env (cadr exp) (body-of (cddr exp)))
              meta-cont))
       (((tagged? 'meaning) exp)
        (evl (cadr exp) env
