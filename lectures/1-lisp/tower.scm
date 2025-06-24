@@ -402,10 +402,12 @@
                     (upper-meta-cont (cdr forced-mc))
                     (resume-k (list 'continuation
                                     (lambda (v mc)
+                                      (display "Continuing with ")
+                                      (write v)
                                       (repl-loop evl env meta-cont level (+ iter 1))))))
                 (eval-set! 'old-cont resume-k upper-env
                            (lambda (v mc)
-                             (upper-cont 'error mc))
+                             (upper-cont v mc))
                            upper-meta-cont))))
           (lambda ()
             (let ((start (cpu-time)))
