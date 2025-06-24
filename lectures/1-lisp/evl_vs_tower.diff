@@ -1,5 +1,5 @@
 diff --git a/evl.scm b/tower.scm
-index aa0af18..7ff8888 100644
+index aa0af18..0c763f7 100644
 --- a/evl.scm
 +++ b/tower.scm
 @@ -3,6 +3,19 @@
@@ -181,7 +181,7 @@ index aa0af18..7ff8888 100644
 +             meta-cont))
 +
 +      (((tagged? 'delta) exp)
-+       (cont (list 'delta-reifier env (cadr exp) (caddr exp))
++       (cont (list 'delta-reifier env (cadr exp) (body-of (cddr exp)))
 +             meta-cont))
 +      (((tagged? 'meaning) exp)
 +       (evl (cadr exp) env
@@ -360,7 +360,7 @@ index aa0af18..7ff8888 100644
       (cons 'apply apply)
       (cons 'error error)
       (cons 'format format)
-@@ -175,43 +361,65 @@
+@@ -175,43 +361,67 @@
       (cons 'display-condition display-condition)
       (cons 'eof-object? eof-object?)
       (cons 'cpu-time cpu-time)
@@ -414,10 +414,12 @@ index aa0af18..7ff8888 100644
 +                    (upper-meta-cont (cdr forced-mc))
 +                    (resume-k (list 'continuation
 +                                    (lambda (v mc)
++                                      (display "Continuing with ")
++                                      (write v)
 +                                      (repl-loop evl env meta-cont level (+ iter 1))))))
 +                (eval-set! 'old-cont resume-k upper-env
 +                           (lambda (v mc)
-+                             (upper-cont 'error mc))
++                             (upper-cont v mc))
 +                           upper-meta-cont))))
            (lambda ()
              (let ((start (cpu-time)))
