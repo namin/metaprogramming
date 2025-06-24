@@ -116,3 +116,8 @@ Copyright 1984-2024 Cisco Systems, Inc.
 
 0-1> 
 ```
+
+### Further examples
+
+- [exs_tower_callcc](exs_tower_callcc.scm): defines `call/cc` in terms of `delta`.
+- [exs_tower_inspect](exs_tower_inspect.scm): defines a facility to inspect and modify the environment of a closure, like in Black (see [blog post](https://blog.sigplan.org/2021/08/12/reflective-towers-of-interpreters/)).
