@@ -22,17 +22,17 @@ A key philosophical shift from reflection as a meta-theoretical add-on to comput
 
 ### Unified type theory foundation
 
-Lean's dependent type theory unifies the object and meta levels of GETFOL.
+Lean's dependent type theory unifies the object and meta levels of FOL.
 Both `Prop` and `Bool` are first-class types in Lean.
 
 ### Built-in computational reduction
 
-GETFOL requires manual attachment of computational semantics, while Lean's type theory has computation built into its core.
+FOL requires manual attachment of computational semantics, while Lean's type theory has computation built into its core.
 The function `isEven` automatically computes during type checking.
 
 ### Native decidability framework
 
-GETFOL manually constructs the reflection infrastructure.
+FOL manually constructs the reflection infrastructure.
 - Explicit representation of terms, formulas, and predicates.
 - Manual axioms connecting syntactic and semantic levels.
 - Complex axiom to enable reflection.
@@ -41,7 +41,7 @@ In contrast, Lean provides a systematic decidability framework.
 
 ### Proof-producing computation
 
-GETFOL's reflection produces theorems as side effects.
+FOL's reflection produces theorems as side effects.
 
 Lean's `decide` tactic produces actual proof terms that can be type-checked independently.
 The computation _is_ the proof.
