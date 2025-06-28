@@ -78,7 +78,7 @@ SMT-LIB script:
 (declare-fun n () Int)
 (declare-fun s () Int)
 ; VC 1
-(assert (not (=> (and (and (= i 0) (= s 0)) (<= 0 n)) (and (<= 0 i) (<= i n))))
+(assert (not (=> (and (and (= i 0) (= s 0)) (<= 0 n)) (and (<= 0 i) (<= i n)))))
 ; VC 2
 (assert (not (=> (and (and (<= 0 i) (<= i n)) (< i n)) (and (<= 0 (+ i 1)) (<= (+ i 1) n)))))
 ; VC 3
@@ -122,6 +122,7 @@ Z3 Verification:
 ✗ VC1: INVALID
   Failed to prove: (true => ((x < y => y = x) && (!x < y => x = x)))
   Counterexample:
+    x = -1
     y = 0
 
 ✗ MaxBogus: VERIFICATION FAILED (1 invalid VC(s))

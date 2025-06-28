@@ -163,9 +163,17 @@ object Z3Runner {
   }
   
   def parseModel(output: String): Map[String, Int] = {
-    val modelPattern = "\\(define-fun\\s+(\\w+)\\s+\\(\\)\\s+Int\\s+(-?\\d+)\\)".r
+    val modelPattern = "\\(define-fun\\s+(\\w+)\\s+\\(\\)\\s+Int\\s+((?:\\(-\\s+\\d+\\)|\\d+))\\)".r
+    val negPattern = "\\(-\\s+(\\d+)\\)".r
     modelPattern.findAllMatchIn(output).map { m =>
-      m.group(1) -> m.group(2).toInt
+      val varName = m.group(1)
+      val valueExpr = m.group(2)
+
+      val value = valueExpr match {
+        case negPattern(num) => -num.toInt
+        case num => num.toInt
+      }
+      varName -> value
     }.toMap
   }
   
