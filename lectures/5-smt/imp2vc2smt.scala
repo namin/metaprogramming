@@ -126,21 +126,6 @@ object SMTLib {
     case Or(b1, b2) => freeVars(b1) ++ freeVars(b2)
     case Implies(b1, b2) => freeVars(b1) ++ freeVars(b2)
   }
-  
-  def generateScript(vcs: List[BExpr]): String = {
-    val vars = vcs.flatMap(freeVars).toSet
-    val declarations = vars.toList.sorted.map(v => s"(declare-fun $v () Int)").mkString("\n")
-    
-    val assertions = vcs.zipWithIndex.map { case (vc, i) =>
-      s"; VC ${i + 1}\n(assert (not ${toSMT(vc)}))"
-    }.mkString("\n")
-    
-    s"""(set-logic QF_NIA)
-       |$declarations
-       |$assertions
-       |(check-sat)
-       |(get-model)""".stripMargin
-  }
 }
 
 // Z3 integration
@@ -177,10 +162,10 @@ object Z3Runner {
     }.toMap
   }
   
-  def verifyVC(vc: BExpr, vars: Set[String]): (Boolean, String) = {
+  def verifyVC(vc: BExpr, vars: Set[String]): (Boolean, String, String) = {
     val smtScript = checkVC(vc, vars)
     val (isSat, output) = checkSat(smtScript)
-    (!isSat, output) // VC is valid if negation is UNSAT
+    (!isSat, output, smtScript) // VC is valid if negation is UNSAT
   }
   
   def checkVC(vc: BExpr, vars: Set[String]): String = {
@@ -192,10 +177,10 @@ object Z3Runner {
        |(check-sat)""".stripMargin
   }
   
-  def verifyAll(vcs: List[BExpr]): List[(BExpr, Boolean, String, Option[Map[String, Int]])] = {
+  def verifyAll(vcs: List[BExpr]): List[(BExpr, String, Boolean, String, Option[Map[String, Int]])] = {
     val vars = vcs.flatMap(SMTLib.freeVars).toSet
     vcs.map { vc =>
-      val (isValid, output) = verifyVC(vc, vars)
+      val (isValid, output, smtScript) = verifyVC(vc, vars)
       val model = if (!isValid && output.contains("sat")) {
         // Get model by running a separate query
         val modelScript = s"""${checkVC(vc, vars)}
@@ -203,7 +188,7 @@ object Z3Runner {
         val (_, modelOutput) = checkSat(modelScript)
         Some(parseModel(modelOutput))
       } else None
-      (vc, isValid, output, model)
+      (vc, smtScript, isValid, output, model)
     }
   }
 }
@@ -263,22 +248,24 @@ object Main extends App {
       println(s"\nVC ${i+1}: ${prettyPrint(vc)}")
     }
     
-    println(s"\nSMT-LIB script:\n${SMTLib.generateScript(vcs)}")
-    
-    // Run Z3 verification
-    println(s"\nZ3 Verification:")
-    println("-" * 40)
-    
     try {
+      // Run Z3 verification
+      println(s"\nZ3 Verification:")
+      println("-" * 40)
+
       val results = Z3Runner.verifyAll(vcs)
       var failureCount = 0
       
-      results.zipWithIndex.foreach { case ((vc, isValid, output, model), i) =>
+      results.zipWithIndex.foreach { case ((vc, smtScript, isValid, output, model), i) =>
         if (isValid) {
           println(s"✓ VC${i+1}: VALID")
         } else {
-          failureCount += 1
           println(s"✗ VC${i+1}: INVALID")
+        }
+        println("SMT Script:")
+        println(smtScript)
+        if (!isValid) {
+          failureCount += 1
           println(s"  Failed to prove: ${prettyPrint(vc)}")
           
           model.foreach { m =>

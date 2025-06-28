@@ -12,18 +12,15 @@ Generated 1 verification conditions
 
 VC 1: (true => ((x < y => ((y = x || y = y) && (x <= y && y <= y))) && (!x < y => ((x = x || x = y) && (x <= x && y <= x)))))
 
-SMT-LIB script:
-(set-logic QF_NIA)
-(declare-fun x () Int)
-(declare-fun y () Int)
-; VC 1
-(assert (not (=> true (and (=> (< x y) (and (or (= y x) (= y y)) (and (<= x y) (<= y y)))) (=> (not (< x y)) (and (or (= x x) (= x y)) (and (<= x x) (<= y x))))))))
-(check-sat)
-(get-model)
-
 Z3 Verification:
 ----------------------------------------
 ✓ VC1: VALID
+SMT Script:
+(set-logic QF_NIA)
+(declare-fun x () Int)
+(declare-fun y () Int)
+(assert (not (=> true (and (=> (< x y) (and (or (= y x) (= y y)) (and (<= x y) (<= y y)))) (=> (not (< x y)) (and (or (= x x) (= x y)) (and (<= x x) (<= y x))))))))
+(check-sat)
 
 ✓ Max: VERIFICATION SUCCESSFUL
 
@@ -39,17 +36,14 @@ Generated 1 verification conditions
 
 VC 1: (x = 0 => x + 1 + 1 = 2)
 
-SMT-LIB script:
-(set-logic QF_NIA)
-(declare-fun x () Int)
-; VC 1
-(assert (not (=> (= x 0) (= (+ (+ x 1) 1) 2))))
-(check-sat)
-(get-model)
-
 Z3 Verification:
 ----------------------------------------
 ✓ VC1: VALID
+SMT Script:
+(set-logic QF_NIA)
+(declare-fun x () Int)
+(assert (not (=> (= x 0) (= (+ (+ x 1) 1) 2))))
+(check-sat)
 
 ✓ Counter: VERIFICATION SUCCESSFUL
 
@@ -72,25 +66,32 @@ VC 2: (((0 <= i && i <= n) && i < n) => (0 <= i + 1 && i + 1 <= n))
 
 VC 3: (((0 <= i && i <= n) && !i < n) => i = n)
 
-SMT-LIB script:
+Z3 Verification:
+----------------------------------------
+✓ VC1: VALID
+SMT Script:
 (set-logic QF_NIA)
 (declare-fun i () Int)
 (declare-fun n () Int)
 (declare-fun s () Int)
-; VC 1
 (assert (not (=> (and (and (= i 0) (= s 0)) (<= 0 n)) (and (<= 0 i) (<= i n)))))
-; VC 2
+(check-sat)
+✓ VC2: VALID
+SMT Script:
+(set-logic QF_NIA)
+(declare-fun i () Int)
+(declare-fun n () Int)
+(declare-fun s () Int)
 (assert (not (=> (and (and (<= 0 i) (<= i n)) (< i n)) (and (<= 0 (+ i 1)) (<= (+ i 1) n)))))
-; VC 3
+(check-sat)
+✓ VC3: VALID
+SMT Script:
+(set-logic QF_NIA)
+(declare-fun i () Int)
+(declare-fun n () Int)
+(declare-fun s () Int)
 (assert (not (=> (and (and (<= 0 i) (<= i n)) (not (< i n))) (= i n))))
 (check-sat)
-(get-model)
-
-Z3 Verification:
-----------------------------------------
-✓ VC1: VALID
-✓ VC2: VALID
-✓ VC3: VALID
 
 ✓ Loop: VERIFICATION SUCCESSFUL
 
@@ -108,18 +109,15 @@ Generated 1 verification conditions
 
 VC 1: (true => ((x < y => y = x) && (!x < y => x = x)))
 
-SMT-LIB script:
-(set-logic QF_NIA)
-(declare-fun x () Int)
-(declare-fun y () Int)
-; VC 1
-(assert (not (=> true (and (=> (< x y) (= y x)) (=> (not (< x y)) (= x x))))))
-(check-sat)
-(get-model)
-
 Z3 Verification:
 ----------------------------------------
 ✗ VC1: INVALID
+SMT Script:
+(set-logic QF_NIA)
+(declare-fun x () Int)
+(declare-fun y () Int)
+(assert (not (=> true (and (=> (< x y) (= y x)) (=> (not (< x y)) (= x x))))))
+(check-sat)
   Failed to prove: (true => ((x < y => y = x) && (!x < y => x = x)))
   Counterexample:
     x = -1
