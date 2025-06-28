@@ -141,7 +141,8 @@ object Z3Runner {
       val lines = result.trim.split("\n")
       
       val isSat = lines.headOption.contains("sat")
-      (isSat, result)
+      val isUnsat = lines.headOption.contains("unsat")
+      (isSat || !isUnsat, result) // unknown are treated cautiously as sat
     } finally {
       tempFile.delete()
     }
