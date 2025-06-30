@@ -5,16 +5,27 @@ inductive Even : Nat → Prop where
   | zero : Even 0
   | succ_succ : ∀ n, Even n → Even (n + 2)
 
--- Meta level: computational even checker
+-- Meta level: computational even checker using modulo
 def isEven : Nat → Bool
-  | 0 => true
-  | 1 => false
-  | n + 2 => isEven n
+  | n => n % 2 == 0
 
+-- Auxiliary function to construct Even proofs
+def mkEven : (n : Nat) → n % 2 = 0 → Even n
+  | 0, _ => Even.zero
+  | 1, h => absurd h (by simp)
+  | n + 2, h => Even.succ_succ n (mkEven n (by simp [Nat.add_mod] at h ⊢; exact h))
+
+-- Auxiliary function to extract modulo property from Even
+def evenToMod : {n : Nat} → Even n → n % 2 = 0
+  | _, Even.zero => by simp
+  | _, Even.succ_succ n h => by simp [Nat.add_mod, evenToMod h]
+
+-- Main theorem
 theorem isEven_iff {n : Nat} : isEven n = true ↔ Even n := by
+  simp [isEven]
   constructor
-  · fun_induction isEven n <;> simp +contextual [Even.zero, Even.succ_succ, *]
-  · intro h; induction h <;> simp [isEven, *]
+  · exact mkEven n
+  · exact evenToMod
 
 instance (n : Nat) : Decidable (Even n) :=
   decidable_of_decidable_of_iff isEven_iff
