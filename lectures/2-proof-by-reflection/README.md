@@ -12,6 +12,7 @@ We show the reflection principle in action through a small example, in each of F
 
 - [FOL](even.tst) ([live tutorial](https://io.livecode.ch/learn/namin/GETFOL/reflection))
 - [Lean](even.lean) ([live](https://live.lean-lang.org/#url=https%3A%2F%2Fraw.githubusercontent.com%2Fnamin%2Fmetaprogramming%2Frefs%2Fheads%2Fmaster%2Flectures%2F2-proof-by-reflection%2Feven.lean))
+- [Lean using modulo](even_mod.lean) ([live](https://live.lean-lang.org/#url=https%3A%2F%2Fraw.githubusercontent.com%2Fnamin%2Fmetaprogramming%2Frefs%2Fheads%2Fmaster%2Flectures%2F2-proof-by-reflection%2Feven_mod.lean))
 
 ## Key advances in Lean
 
