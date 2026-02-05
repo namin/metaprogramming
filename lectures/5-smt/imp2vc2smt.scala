@@ -25,7 +25,7 @@ case class Implies(b1: BExpr, b2: BExpr) extends BExpr
 sealed trait Stmt
 case object Skip extends Stmt
 case class Assign(x: String, a: AExpr) extends Stmt
-case class Seq(s1: Stmt, s2: Stmt) extends Stmt
+case class Sequence(s1: Stmt, s2: Stmt) extends Stmt
 case class If(b: BExpr, s1: Stmt, s2: Stmt) extends Stmt
 case class While(b: BExpr, inv: BExpr, s: Stmt) extends Stmt
 
@@ -62,7 +62,7 @@ object Verifier {
     case Assign(x, a) => 
       (substitute(q, x, a), Nil)
     
-    case Seq(s1, s2) =>
+    case Sequence(s1, s2) =>
       val (wp2, vcs2) = wpVc(s2, q)
       val (wp1, vcs1) = wpVc(s1, wp2)
       (wp1, vcs1 ++ vcs2)
@@ -131,7 +131,7 @@ object SMTLib {
 // Z3 integration
 object Z3Runner {
   def checkSat(smtScript: String): (Boolean, String) = {
-    val result = (Process(scala.Seq("z3", "-in")) #< new java.io.ByteArrayInputStream(smtScript.getBytes)).!!
+    val result = (Process(Seq("z3", "-in")) #< new java.io.ByteArrayInputStream(smtScript.getBytes)).!!
     val lines = result.trim.split("\n")
 
     val isSat = lines.headOption.contains("sat")
@@ -201,7 +201,7 @@ object Main extends App {
   // Example 2: Simple counter
   val counterProgram = Program(
     Eq(Var("x"), Num(0)),
-    Seq(
+    Sequence(
       Assign("x", Plus(Var("x"), Num(1))),
       Assign("x", Plus(Var("x"), Num(1)))
     ),
@@ -214,7 +214,7 @@ object Main extends App {
     While(
       Lt(Var("i"), Var("n")),
       And(Leq(Num(0), Var("i")), Leq(Var("i"), Var("n"))), // invariant
-      Seq(
+      Sequence(
         Assign("s", Plus(Var("s"), Var("i"))),
         Assign("i", Plus(Var("i"), Num(1)))
       )
@@ -310,7 +310,7 @@ object Main extends App {
     s match {
       case Skip => s"${spaces}skip"
       case Assign(x, a) => s"${spaces}$x := ${prettyPrint(a)}"
-      case Seq(s1, s2) => s"${prettyPrint(s1, indent)};\n${prettyPrint(s2, indent)}"
+      case Sequence(s1, s2) => s"${prettyPrint(s1, indent)};\n${prettyPrint(s2, indent)}"
       case If(b, s1, s2) => 
         s"${spaces}if (${prettyPrint(b)}) then\n${prettyPrint(s1, indent + 1)}\n${spaces}else\n${prettyPrint(s2, indent + 1)}"
       case While(b, inv, s) =>

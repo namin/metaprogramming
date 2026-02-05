@@ -19,7 +19,7 @@ See also this [tutorial blog post on synthesis with SMT](https://github.com/samp
 ### Statements
 - `Skip` - no operation
 - `Assign(x, e)` - variable assignment
-- `Seq(s1, s2)` - sequential composition
+- `Sequence(s1, s2)` - sequential composition
 - `If(b, s1, s2)` - conditional
 - `While(b, inv, s)` - loop with invariant
 
@@ -31,7 +31,7 @@ The verifier computes weakest preconditions (WPs) and generates verification con
 def wpVc(s: Stmt, q: BExpr): (BExpr, List[BExpr]) = s match {
   case Skip => (q, Nil)
   case Assign(x, a) => (substitute(q, x, a), Nil)
-  case Seq(s1, s2) =>
+  case Sequence(s1, s2) =>
     val (wp2, vcs2) = wpVc(s2, q)
     val (wp1, vcs1) = wpVc(s1, wp2)
     (wp1, vcs1 ++ vcs2)
