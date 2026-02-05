@@ -131,21 +131,12 @@ object SMTLib {
 // Z3 integration
 object Z3Runner {
   def checkSat(smtScript: String): (Boolean, String) = {
-    val tempFile = File.createTempFile("imp_vc_", ".smt2")
-    try {
-      val writer = new PrintWriter(tempFile)
-      writer.write(smtScript)
-      writer.close()
-      
-      val result = Process(scala.Seq("z3", tempFile.getAbsolutePath)).!!
-      val lines = result.trim.split("\n")
-      
-      val isSat = lines.headOption.contains("sat")
-      val isUnsat = lines.headOption.contains("unsat")
-      (isSat || !isUnsat, result) // unknown are treated cautiously as sat
-    } finally {
-      tempFile.delete()
-    }
+    val result = (Process(scala.Seq("z3", "-in")) #< new java.io.ByteArrayInputStream(smtScript.getBytes)).!!
+    val lines = result.trim.split("\n")
+
+    val isSat = lines.headOption.contains("sat")
+    val isUnsat = lines.headOption.contains("unsat")
+    (isSat || !isUnsat, result) // unknown are treated cautiously as sat
   }
   
   def parseModel(output: String): Map[String, Int] = {
